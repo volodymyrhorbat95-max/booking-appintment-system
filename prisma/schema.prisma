@@ -1,0 +1,520 @@
+// Prisma schema for Appointment Booking Platform
+// All tables needed for the entire platform
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTHENTICATION
+// ============================================
+
+enum UserRole {
+  ADMIN
+  PROFESSIONAL
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  password     String?   // Encrypted, null for Google OAuth users
+  role         UserRole
+  name         String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  professional Professional?
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([role]) // Fast filtering by user role
+  @@index([createdAt]) // Fast sorting by creation date
+  @@map("users")
+}
+
+// ============================================
+// PROFESSIONAL
+// ============================================
+
+model Professional {
+  id                    String    @id @default(uuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName             String
+  lastName              String
+  slug                  String    @unique // URL slug for booking page (e.g., /garcia)
+  phone                 String?
+  timezone              String    @default("America/Argentina/Buenos_Aires")
+
+  // Google Calendar
+  googleCalendarConnected Boolean  @default(false)
+  googleRefreshToken      String?  // Encrypted
+  googleCalendarId        String?
+
+  // Subscription
+  subscriptionId        String?
+  subscription          Subscription?
+
+  // Deposit settings
+  depositEnabled        Boolean   @default(false)
+  depositAmount         Decimal?  @db.Decimal(10, 2)
+
+  // Status
+  isActive              Boolean   @default(true)
+  isSuspended           Boolean   @default(false)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Relations
+  availabilities        Availability[]
+  blockedDates          BlockedDate[]
+  appointments          Appointment[]
+  reminderSettings      ReminderSetting[]
+  messageTemplates      MessageTemplate[]
+  customFormFields      CustomFormField[]
+  patients              Patient[]
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([isActive, isSuspended]) // Fast filtering by status in admin dashboard
+  @@index([createdAt]) // Fast sorting by creation date
+  @@map("professionals")
+}
+
+// ============================================
+// PATIENT (No login required)
+// ============================================
+
+model Patient {
+  id              String    @id @default(uuid())
+  professionalId  String
+  professional    Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  firstName       String
+  lastName        String
+  email           String
+  whatsappNumber  String    // Including country code (e.g., +5491112345678)
+  countryCode     String    @default("+54")
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  appointments    Appointment[]
+
+  @@unique([professionalId, whatsappNumber])
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([professionalId]) // Fast patient lookup by professional
+  @@index([email]) // Fast patient search by email
+  @@index([createdAt]) // Fast sorting by creation date
+  @@map("patients")
+}
+
+// ============================================
+// APPOINTMENTS
+// ============================================
+
+enum AppointmentStatus {
+  PENDING           // Just booked
+  PENDING_PAYMENT   // Waiting for deposit payment
+  REMINDER_SENT     // Reminder sent, waiting for response
+  CONFIRMED         // Patient confirmed
+  CANCELLED         // Cancelled by patient or professional
+  COMPLETED         // Appointment completed
+  NO_SHOW           // Patient didn't show up
+}
+
+model Appointment {
+  id                String            @id @default(uuid())
+  professionalId    String
+  professional      Professional      @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  patientId         String
+  patient           Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+
+  date              DateTime          @db.Date
+  startTime         DateTime          @db.Time
+  endTime           DateTime          @db.Time
+
+  status            AppointmentStatus @default(PENDING)
+  bookingReference  String            @unique // Unique code for patient (e.g., ABC123)
+
+  // Google Calendar sync
+  googleEventId     String?
+
+  // Deposit
+  depositRequired   Boolean           @default(false)
+  depositAmount     Decimal?          @db.Decimal(10, 2)
+  depositPaid       Boolean           @default(false)
+  depositPaidAt     DateTime?
+
+  // Cancellation
+  cancelledAt       DateTime?
+  cancellationReason String?
+  cancelledBy       String?           // 'patient', 'professional', 'system'
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  // Relations
+  customFieldValues AppointmentCustomFieldValue[]
+  scheduledReminders ScheduledReminder[]
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([professionalId, date]) // Fast appointment lookup by professional and date
+  @@index([status]) // Fast filtering by status
+  @@index([professionalId, status]) // Fast dashboard stats queries
+  @@index([professionalId, status, date]) // Fast calendar view with status filter
+  @@index([patientId]) // Fast lookup by patient (foreign key)
+  @@index([createdAt]) // Fast sorting by creation date
+  @@index([date, startTime]) // Fast time-based queries
+  @@map("appointments")
+}
+
+// ============================================
+// AVAILABILITY (Multiple slots per day supported)
+// ============================================
+
+model Availability {
+  id              String    @id @default(uuid())
+  professionalId  String
+  professional    Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  dayOfWeek       Int       // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  slotNumber      Int       // 1, 2, 3... for multiple slots per day (morning, afternoon)
+  startTime       String    // "09:00"
+  endTime         String    // "12:00"
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([professionalId, dayOfWeek, slotNumber])
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([professionalId, isActive]) // Fast active availability lookup
+  @@map("availabilities")
+}
+
+// Appointment duration setting per professional
+model ProfessionalSettings {
+  id                    String    @id @default(uuid())
+  professionalId        String    @unique
+
+  appointmentDuration   Int       @default(30) // in minutes (5-180 in 5-minute increments)
+
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("professional_settings")
+}
+
+// ============================================
+// BLOCKED DATES
+// ============================================
+
+model BlockedDate {
+  id              String    @id @default(uuid())
+  professionalId  String
+  professional    Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  date            DateTime  @db.Date
+  reason          String?   // Vacation, Holiday, Personal, etc.
+
+  createdAt       DateTime  @default(now())
+
+  @@unique([professionalId, date])
+  @@map("blocked_dates")
+}
+
+// ============================================
+// SUBSCRIPTION PLANS (Admin editable)
+// ============================================
+
+model SubscriptionPlan {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+
+  monthlyPrice    Decimal   @db.Decimal(10, 2)
+  annualPrice     Decimal   @db.Decimal(10, 2)
+
+  features        String[]  // Array of feature strings
+
+  isActive        Boolean   @default(true)
+  displayOrder    Int       @default(0)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  subscriptions   Subscription[]
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([isActive, displayOrder]) // Fast active plans retrieval in order
+  @@map("subscription_plans")
+}
+
+// ============================================
+// SUBSCRIPTIONS
+// ============================================
+
+enum BillingPeriod {
+  MONTHLY
+  ANNUAL
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
+}
+
+model Subscription {
+  id                  String             @id @default(uuid())
+  professionalId      String             @unique
+  professional        Professional       @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+  planId              String
+  plan                SubscriptionPlan   @relation(fields: [planId], references: [id])
+
+  billingPeriod       BillingPeriod
+  status              SubscriptionStatus @default(ACTIVE)
+
+  startDate           DateTime
+  endDate             DateTime?
+  nextBillingDate     DateTime?
+
+  // Mercado Pago reference
+  mercadoPagoSubscriptionId String?
+
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  payments            Payment[]
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([status]) // Fast filtering by status
+  @@index([nextBillingDate]) // Fast billing cycle queries
+  @@index([planId]) // Fast lookup by plan
+  @@map("subscriptions")
+}
+
+// ============================================
+// PAYMENTS
+// ============================================
+
+enum PaymentType {
+  SUBSCRIPTION
+  DEPOSIT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id                String        @id @default(uuid())
+  subscriptionId    String?
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  type              PaymentType
+  status            PaymentStatus @default(PENDING)
+  amount            Decimal       @db.Decimal(10, 2)
+  currency          String        @default("ARS")
+
+  // Mercado Pago reference
+  mercadoPagoPaymentId String?
+
+  paidAt            DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([status]) // Fast filtering by status
+  @@index([type]) // Fast filtering by payment type
+  @@index([createdAt]) // Fast sorting by date
+  @@index([subscriptionId]) // Fast lookup by subscription
+  @@map("payments")
+}
+
+// ============================================
+// WHATSAPP REMINDER SETTINGS
+// ============================================
+
+model ReminderSetting {
+  id                String    @id @default(uuid())
+  professionalId    String
+  professional      Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  reminderNumber    Int       // 1, 2, 3... for multiple reminders
+  hoursBefore       Int       // 96, 72, 48, 24, 12, 6, 3, 2
+  enableNightBefore Boolean   @default(false) // For early morning appointments
+
+  isActive          Boolean   @default(true)
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([professionalId, reminderNumber])
+  @@map("reminder_settings")
+}
+
+// Scheduled reminders for each appointment
+model ScheduledReminder {
+  id              String    @id @default(uuid())
+  appointmentId   String
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+
+  scheduledFor    DateTime
+  sentAt          DateTime?
+  status          String    @default("pending") // pending, sent, cancelled
+
+  createdAt       DateTime  @default(now())
+
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([scheduledFor, status]) // Fast pending reminder queries
+  @@index([appointmentId]) // Fast lookup by appointment
+  @@map("scheduled_reminders")
+}
+
+// ============================================
+// MESSAGE TEMPLATES
+// ============================================
+
+enum MessageTemplateType {
+  BOOKING_CONFIRMATION
+  REMINDER
+  CANCELLATION
+}
+
+model MessageTemplate {
+  id              String              @id @default(uuid())
+  professionalId  String
+  professional    Professional        @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  type            MessageTemplateType
+  messageText     String              // With variable placeholders like {patient_name}
+
+  isActive        Boolean             @default(true)
+
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@unique([professionalId, type])
+  @@map("message_templates")
+}
+
+// ============================================
+// CUSTOM FORM FIELDS
+// ============================================
+
+enum FieldType {
+  TEXT
+  NUMBER
+  DATE
+  DROPDOWN
+}
+
+model CustomFormField {
+  id              String    @id @default(uuid())
+  professionalId  String
+  professional    Professional @relation(fields: [professionalId], references: [id], onDelete: Cascade)
+
+  fieldName       String
+  fieldType       FieldType @default(TEXT)
+  isRequired      Boolean   @default(false)
+  displayOrder    Int       @default(0)
+  options         String[]  // For dropdown type
+
+  isActive        Boolean   @default(true)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  values          AppointmentCustomFieldValue[]
+
+  @@map("custom_form_fields")
+}
+
+// Values for custom fields per appointment
+model AppointmentCustomFieldValue {
+  id              String    @id @default(uuid())
+  appointmentId   String
+  appointment     Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  customFieldId   String
+  customField     CustomFormField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  value           String
+
+  @@unique([appointmentId, customFieldId])
+  @@map("appointment_custom_field_values")
+}
+
+// ============================================
+// PLATFORM SETTINGS (Admin configurable)
+// ============================================
+
+model PlatformSetting {
+  id          String    @id @default(uuid())
+  key         String    @unique
+  value       String
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("platform_settings")
+}
+
+// ============================================
+// EXTERNAL CALENDAR EVENTS (from Google Calendar)
+// ============================================
+
+model ExternalCalendarEvent {
+  id              String    @id @default(uuid())
+  professionalId  String
+
+  googleEventId   String
+  title           String?
+  startTime       DateTime
+  endTime         DateTime
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([professionalId, googleEventId])
+  // Performance indexes (Section 12.1 - Speed)
+  @@index([professionalId, startTime, endTime]) // Fast time range queries
+  @@map("external_calendar_events")
+}
+
+// ============================================
+// SLOT HOLDS (Temporary holds to prevent double bookings)
+// Requirement 10.1: "When someone starts booking, that slot should be temporarily held"
+// ============================================
+
+model SlotHold {
+  id              String    @id @default(uuid())
+  professionalId  String
+
+  date            DateTime  @db.Date
+  startTime       DateTime  @db.Time
+
+  // Session identifier (to allow same user to extend/release their hold)
+  sessionId       String
+
+  // When the hold expires (default: 5 minutes from creation)
+  expiresAt       DateTime
+
+  createdAt       DateTime  @default(now())
+
+  // Unique constraint: only one hold per slot at a time
+  @@unique([professionalId, date, startTime])
+  @@index([expiresAt])
+  @@map("slot_holds")
+}
