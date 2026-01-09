@@ -1,0 +1,513 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* ============================================
+   STAGGERED ITEM ANIMATIONS
+   Each item has unique animation effect
+   No delays - animations start immediately
+   ============================================ */
+
+/* Animation Durations */
+.duration-very-fast { animation-duration: 200ms; }
+.duration-fast { animation-duration: 400ms; }
+.duration-normal { animation-duration: 600ms; }
+.duration-light-slow { animation-duration: 800ms; }
+.duration-slow { animation-duration: 1000ms; }
+.duration-very-slow { animation-duration: 1200ms; }
+
+/* Base animation properties */
+.animate-item {
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Fade Up */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation-name: fadeUp;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Fade Down */
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-down {
+  animation-name: fadeDown;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Fade Left */
+@keyframes fadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-fade-left {
+  animation-name: fadeLeft;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Fade Right */
+@keyframes fadeRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+.animate-fade-right {
+  animation-name: fadeRight;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Zoom In */
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-zoom-in {
+  animation-name: zoomIn;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Zoom Out */
+@keyframes zoomOut {
+  from {
+    opacity: 0;
+    transform: scale(1.1);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-zoom-out {
+  animation-name: zoomOut;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Flip Up */
+@keyframes flipUp {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotateX(20deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotateX(0);
+  }
+}
+.animate-flip-up {
+  animation-name: flipUp;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Flip Down */
+@keyframes flipDown {
+  from {
+    opacity: 0;
+    transform: perspective(400px) rotateX(-20deg);
+  }
+  to {
+    opacity: 1;
+    transform: perspective(400px) rotateX(0);
+  }
+}
+.animate-flip-down {
+  animation-name: flipDown;
+  animation-fill-mode: both;
+  animation-timing-function: ease-out;
+}
+
+/* Combined animation classes for convenience */
+.fade-up-fast { animation: fadeUp 400ms ease-out both; }
+.fade-up-normal { animation: fadeUp 600ms ease-out both; }
+.fade-up-slow { animation: fadeUp 1000ms ease-out both; }
+
+.fade-down-fast { animation: fadeDown 400ms ease-out both; }
+.fade-down-normal { animation: fadeDown 600ms ease-out both; }
+.fade-down-slow { animation: fadeDown 1000ms ease-out both; }
+
+.fade-left-fast { animation: fadeLeft 400ms ease-out both; }
+.fade-left-normal { animation: fadeLeft 600ms ease-out both; }
+.fade-left-slow { animation: fadeLeft 1000ms ease-out both; }
+
+.fade-right-fast { animation: fadeRight 400ms ease-out both; }
+.fade-right-normal { animation: fadeRight 600ms ease-out both; }
+.fade-right-slow { animation: fadeRight 1000ms ease-out both; }
+
+.zoom-in-fast { animation: zoomIn 400ms ease-out both; }
+.zoom-in-normal { animation: zoomIn 600ms ease-out both; }
+.zoom-in-slow { animation: zoomIn 1000ms ease-out both; }
+
+.zoom-out-fast { animation: zoomOut 400ms ease-out both; }
+.zoom-out-normal { animation: zoomOut 600ms ease-out both; }
+.zoom-out-slow { animation: zoomOut 1000ms ease-out both; }
+
+.flip-up-fast { animation: flipUp 400ms ease-out both; }
+.flip-up-normal { animation: flipUp 600ms ease-out both; }
+.flip-up-slow { animation: flipUp 1000ms ease-out both; }
+
+.flip-down-fast { animation: flipDown 400ms ease-out both; }
+.flip-down-normal { animation: flipDown 600ms ease-out both; }
+.flip-down-slow { animation: flipDown 1000ms ease-out both; }
+
+/* ============================================
+   ACCESSIBILITY: Reduced Motion Support
+   Respects user preference for reduced motion
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-fade-up,
+  .animate-fade-down,
+  .animate-fade-left,
+  .animate-fade-right,
+  .animate-zoom-in,
+  .animate-zoom-out,
+  .animate-flip-up,
+  .animate-flip-down,
+  .fade-up-fast, .fade-up-normal, .fade-up-slow,
+  .fade-down-fast, .fade-down-normal, .fade-down-slow,
+  .fade-left-fast, .fade-left-normal, .fade-left-slow,
+  .fade-right-fast, .fade-right-normal, .fade-right-slow,
+  .zoom-in-fast, .zoom-in-normal, .zoom-in-slow,
+  .zoom-out-fast, .zoom-out-normal, .zoom-out-slow,
+  .flip-up-fast, .flip-up-normal, .flip-up-slow,
+  .flip-down-fast, .flip-down-normal, .flip-down-slow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE UTILITIES
+   Section 11.3 & 11.4: Mobile-First Design
+   ============================================ */
+
+/* Touch-friendly minimum sizes (44x44px recommended by Apple/Google) */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Responsive touch targets - larger on mobile, can be smaller on desktop */
+.touch-target-responsive {
+  min-height: 48px;
+  min-width: 48px;
+}
+@media (min-width: 768px) {
+  .touch-target-responsive {
+    min-height: 40px;
+    min-width: 40px;
+  }
+}
+
+/* Mobile-optimized button padding */
+.btn-mobile {
+  padding: 0.75rem 1rem;
+}
+@media (min-width: 640px) {
+  .btn-mobile {
+    padding: 0.625rem 1rem;
+  }
+}
+@media (min-width: 768px) {
+  .btn-mobile {
+    padding: 0.5rem 1rem;
+  }
+}
+
+/* Mobile-optimized input padding */
+.input-mobile {
+  padding: 0.75rem 1rem;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+}
+@media (min-width: 640px) {
+  .input-mobile {
+    padding: 0.625rem 0.875rem;
+    font-size: inherit;
+  }
+}
+
+/* Safe area padding for notched devices (iPhone X+) */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ============================================
+   RESPONSIVE CONTAINER UTILITIES
+   Consistent max-widths across the platform
+   ============================================ */
+
+/* Standard container for dashboard/admin pages */
+.container-dashboard {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .container-dashboard {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .container-dashboard {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* Narrow container for forms/booking pages */
+.container-narrow {
+  width: 100%;
+  max-width: 896px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .container-narrow {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+/* Full-width container with responsive padding */
+.container-full {
+  width: 100%;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .container-full {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .container-full {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE SPACING UTILITIES
+   Mobile-first gap and spacing
+   ============================================ */
+
+/* Responsive grid gaps */
+.gap-responsive {
+  gap: 0.75rem;
+}
+@media (min-width: 640px) {
+  .gap-responsive {
+    gap: 1rem;
+  }
+}
+@media (min-width: 768px) {
+  .gap-responsive {
+    gap: 1.5rem;
+  }
+}
+
+/* Responsive section spacing */
+.space-y-responsive > * + * {
+  margin-top: 1rem;
+}
+@media (min-width: 640px) {
+  .space-y-responsive > * + * {
+    margin-top: 1.25rem;
+  }
+}
+@media (min-width: 768px) {
+  .space-y-responsive > * + * {
+    margin-top: 1.5rem;
+  }
+}
+
+/* ============================================
+   RESPONSIVE TYPOGRAPHY
+   Mobile-first text scaling
+   ============================================ */
+
+/* Page titles */
+.text-title {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+}
+@media (min-width: 640px) {
+  .text-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+@media (min-width: 768px) {
+  .text-title {
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+}
+
+/* Section headings */
+.text-section {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  font-weight: 600;
+}
+@media (min-width: 640px) {
+  .text-section {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+/* Card titles */
+.text-card-title {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 600;
+}
+@media (min-width: 640px) {
+  .text-card-title {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+/* Body text */
+.text-body {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+@media (min-width: 640px) {
+  .text-body {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* Small/helper text */
+.text-small {
+  font-size: 0.75rem;
+  line-height: 1rem;
+}
+@media (min-width: 640px) {
+  .text-small {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+/* ============================================
+   MOBILE INTERACTION IMPROVEMENTS
+   ============================================ */
+
+/* Prevent text selection on touch (for buttons/interactive elements) */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Smooth scrolling for overflow containers */
+.scroll-smooth-touch {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Hide scrollbar but keep functionality (mobile-friendly) */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Active state for touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .touch-active:active {
+    opacity: 0.7;
+    transform: scale(0.98);
+  }
+}
