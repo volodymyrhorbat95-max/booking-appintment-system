@@ -22,24 +22,24 @@ const ProfessionalsTable = ({ professionals, onSuspend, onActivate }: Profession
     <div className="rounded-lg bg-white shadow-sm overflow-hidden fade-up-normal">
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-blue-100">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider fade-down-fast">
+              <th className="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider fade-down-fast">
                 Profesional
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider fade-down-fast">
+              <th className="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider fade-down-fast">
                 Estado
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider fade-down-fast">
+              <th className="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider fade-down-fast">
                 Suscripción
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider fade-down-fast">
+              <th className="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider fade-down-fast">
                 Citas
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider fade-down-fast">
+              <th className="px-4 py-3 text-left text-xs font-medium text-blue-800 uppercase tracking-wider fade-down-fast">
                 Registro
               </th>
-              <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider fade-down-fast">
+              <th className="px-4 py-3 text-right text-xs font-medium text-blue-800 uppercase tracking-wider fade-down-fast">
                 Acciones
               </th>
             </tr>

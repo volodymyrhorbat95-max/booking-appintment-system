@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@theme {
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-DEFAULT: 3px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 3px;
+  --radius-2xl: 3px;
+  --radius-3xl: 3px;
+  --radius-full: 9999px;
+}
+
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
