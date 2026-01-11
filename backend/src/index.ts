@@ -23,26 +23,11 @@ logger.info('Application starting...', {
 import { initializeSentry, setupExpressErrorHandler, setupExpressErrorCatcher, closeSentry } from './config/sentry.config';
 initializeSentry();
 
-// Import routes
-import authRoutes from './routes/auth.routes';
-import professionalAuthRoutes from './routes/professional-auth.routes';
-import availabilityRoutes from './routes/availability.routes';
-import blockedDatesRoutes from './routes/blocked-dates.routes';
-import customFormFieldsRoutes from './routes/custom-form-fields.routes';
-import depositSettingsRoutes from './routes/deposit-settings.routes';
-import publicBookingRoutes from './routes/public-booking.routes';
-import appointmentRoutes from './routes/appointment.routes';
-import professionalAppointmentsRoutes from './routes/professional-appointments.routes';
-import googleCalendarRoutes from './routes/google-calendar.routes';
-import whatsappRoutes from './routes/whatsapp.routes';
-import webhooksRoutes from './routes/webhooks.routes';
-import adminRoutes from './routes/admin.routes';
-import subscriptionRoutes from './routes/subscription.routes';
-import statisticsRoutes from './routes/statistics.routes';
+// Import routes configuration
+import { configureRoutes } from './routes';
 
 // Import middleware
-import { rateLimiter, authRateLimiter, bookingRateLimiter, webhookRateLimiter } from './middleware/rate-limiter.middleware';
-import { noCacheControl, publicShortCache, longCache } from './middleware/cache-control.middleware';
+import { rateLimiter } from './middleware/rate-limiter.middleware';
 import { requestLoggerMiddleware } from './middleware/request-logger.middleware';
 
 // Import reminder scheduler
@@ -146,7 +131,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'x-request-id'],
   exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 app.use(express.json({ limit: '10mb' })); // Limit request body size
@@ -170,33 +155,7 @@ app.get('/health', (req, res) => {
 // API ROUTES WITH SPECIFIC MIDDLEWARE
 // Section 12.1 & 12.2: Speed + Concurrent Users
 // ============================================
-
-// Auth routes - stricter rate limiting to prevent brute force
-app.use('/api/auth', authRateLimiter, authRoutes);
-app.use('/api/professional/auth', authRateLimiter, professionalAuthRoutes);
-
-// Professional routes - real-time data, no caching
-app.use('/api/professional/availability', noCacheControl, availabilityRoutes);
-app.use('/api/professional/blocked-dates', noCacheControl, blockedDatesRoutes);
-app.use('/api/professional/form-fields', noCacheControl, customFormFieldsRoutes);
-app.use('/api/professional/deposit-settings', noCacheControl, depositSettingsRoutes);
-app.use('/api/professional/appointments', noCacheControl, professionalAppointmentsRoutes);
-app.use('/api/professional/google-calendar', noCacheControl, googleCalendarRoutes);
-app.use('/api/professional/whatsapp', noCacheControl, whatsappRoutes);
-app.use('/api/professional/statistics', noCacheControl, statisticsRoutes);
-
-// Public booking routes - rate limited for bookings, short cache for page data
-app.use('/api/booking', bookingRateLimiter, publicShortCache, publicBookingRoutes);
-app.use('/api/appointments', bookingRateLimiter, noCacheControl, appointmentRoutes);
-
-// Webhooks (external services like Twilio) - higher rate limit
-app.use('/api/webhooks', webhookRateLimiter, webhooksRoutes);
-
-// Admin routes - no caching for admin data
-app.use('/api/admin', noCacheControl, adminRoutes);
-
-// Subscription routes - plans can be cached longer
-app.use('/api/subscription', longCache, subscriptionRoutes);
+configureRoutes(app);
 
 // ============================================
 // SENTRY ERROR HANDLER (Must be after all routes, before other error handlers)
