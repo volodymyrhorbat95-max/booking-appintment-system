@@ -10,13 +10,17 @@ import prisma from '../../src/config/database';
 export const seedUsers = async () => {
   console.log('🌱 Seeding users...');
 
+  // Get admin credentials from environment variables
+  const adminEmail = process.env.ADMIN_EMAIL || 'admin@appointmentplatform.com';
+  const adminPasswordPlain = process.env.ADMIN_PASSWORD || 'Admin123!';
+
   // Create admin user
-  const adminPassword = await hashPassword('Admin123!');
+  const adminPassword = await hashPassword(adminPasswordPlain);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@appointmentplatform.com' },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email: 'admin@appointmentplatform.com',
+      email: adminEmail,
       password: adminPassword,
       role: UserRole.ADMIN,
       name: 'Platform Admin'
