@@ -175,6 +175,14 @@ initializeWebSocket(httpServer);
 
 // Start server
 const server = httpServer.listen(PORT, () => {
+  console.log('='.repeat(50));
+  console.log('Server started successfully');
+  console.log('Port:', PORT);
+  console.log('Environment:', process.env.NODE_ENV || 'development');
+  console.log('Frontend URL:', FRONTEND_URL);
+  console.log('Allowed Origins:', JSON.stringify(ALLOWED_ORIGINS, null, 2));
+  console.log('='.repeat(50));
+
   logger.info('Server started successfully', {
     port: PORT,
     environment: process.env.NODE_ENV || 'development',
