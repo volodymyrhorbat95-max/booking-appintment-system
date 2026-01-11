@@ -3,9 +3,25 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import compression from 'compression';
+import { createServer } from 'http';
 
 // Load environment variables
 dotenv.config();
+
+// Validate environment variables before starting (CRITICAL - prevents silent failures)
+import { validateEnvironmentOrExit } from './utils/env-validator';
+validateEnvironmentOrExit();
+
+// Initialize structured logging
+import { logger } from './utils/logger';
+logger.info('Application starting...', {
+  nodeEnv: process.env.NODE_ENV,
+  port: process.env.PORT
+});
+
+// Initialize Sentry error tracking (MUST be before other imports)
+import { initializeSentry, setupExpressErrorHandler, setupExpressErrorCatcher, closeSentry } from './config/sentry.config';
+initializeSentry();
 
 // Import routes
 import authRoutes from './routes/auth.routes';
@@ -27,14 +43,28 @@ import statisticsRoutes from './routes/statistics.routes';
 // Import middleware
 import { rateLimiter, authRateLimiter, bookingRateLimiter, webhookRateLimiter } from './middleware/rate-limiter.middleware';
 import { noCacheControl, publicShortCache, longCache } from './middleware/cache-control.middleware';
+import { requestLoggerMiddleware } from './middleware/request-logger.middleware';
 
 // Import reminder scheduler
 import { startReminderScheduler, shutdownWorker } from './services/reminder-worker.service';
+
+// Import WebSocket configuration
+import { initializeWebSocket } from './config/socket.config';
 
 const app: Application = express();
 
 const PORT = process.env.PORT || 5000;
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
+
+// ============================================
+// SENTRY REQUEST HANDLER (Must be first middleware)
+// ============================================
+setupExpressErrorHandler(app);
+
+// ============================================
+// REQUEST LOGGING (After Sentry, before other middleware)
+// ============================================
+app.use(requestLoggerMiddleware);
 
 // ============================================
 // SECURITY MIDDLEWARE (Section 13 - Security Requirements)
@@ -152,14 +182,32 @@ app.use('/api/admin', noCacheControl, adminRoutes);
 // Subscription routes - plans can be cached longer
 app.use('/api/subscription', longCache, subscriptionRoutes);
 
+// ============================================
+// SENTRY ERROR HANDLER (Must be after all routes, before other error handlers)
+// ============================================
+setupExpressErrorCatcher(app);
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ success: false, error: 'Route not found' });
 });
 
+// Create HTTP server
+const httpServer = createServer(app);
+
+// Initialize WebSocket
+initializeWebSocket(httpServer);
+
 // Start server
-const server = app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+const server = httpServer.listen(PORT, () => {
+  logger.info('Server started successfully', {
+    port: PORT,
+    environment: process.env.NODE_ENV || 'development',
+    frontendUrl: FRONTEND_URL
+  });
+  logger.info('WebSocket server ready', {
+    wsUrl: `ws://localhost:${PORT}`
+  });
 
   // Start reminder scheduler
   startReminderScheduler();
@@ -167,19 +215,21 @@ const server = app.listen(PORT, () => {
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-  console.log('SIGTERM received, shutting down...');
+  logger.info('SIGTERM received - initiating graceful shutdown');
   await shutdownWorker();
+  await closeSentry();
   server.close(() => {
-    console.log('Server closed');
+    logger.info('Server closed successfully');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', async () => {
-  console.log('SIGINT received, shutting down...');
+  logger.info('SIGINT received - initiating graceful shutdown');
   await shutdownWorker();
+  await closeSentry();
   server.close(() => {
-    console.log('Server closed');
+    logger.info('Server closed successfully');
     process.exit(0);
   });
 });

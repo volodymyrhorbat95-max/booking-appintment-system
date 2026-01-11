@@ -1,8 +1,13 @@
 import type { Response } from 'express';
+import { logger } from '../utils/logger';
 import type { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../config/database';
 import { AppointmentStatus, Prisma } from '@prisma/client';
 import { updateCalendarEvent } from '../services/google-calendar.service';
+import { emitToProfessional, emitToAdmins, WebSocketEvent } from '../config/socket.config';
+import { sendCancellationNotification } from '../services/whatsapp.service';
+import { sendCancellationEmail } from '../services/email.service';
+import { decrypt } from '../utils/encryption';
 
 // ============================================
 // PROFESSIONAL APPOINTMENTS CONTROLLER
@@ -106,43 +111,49 @@ export const getAppointments = async (req: AuthRequest, res: Response) => {
     });
 
     // Format appointments for response
-    const formattedAppointments = appointments.map((apt) => ({
-      id: apt.id,
-      bookingReference: apt.bookingReference,
-      date: apt.date.toISOString().split('T')[0],
-      startTime:
-        apt.startTime instanceof Date
-          ? `${apt.startTime.getHours().toString().padStart(2, '0')}:${apt.startTime.getMinutes().toString().padStart(2, '0')}`
-          : String(apt.startTime).substring(0, 5),
-      endTime:
-        apt.endTime instanceof Date
-          ? `${apt.endTime.getHours().toString().padStart(2, '0')}:${apt.endTime.getMinutes().toString().padStart(2, '0')}`
-          : String(apt.endTime).substring(0, 5),
-      status: apt.status,
-      patient: {
-        id: apt.patient.id,
-        firstName: apt.patient.firstName,
-        lastName: apt.patient.lastName,
-        fullName: `${apt.patient.firstName} ${apt.patient.lastName}`,
-        email: apt.patient.email,
-        whatsappNumber: apt.patient.whatsappNumber,
-        countryCode: apt.patient.countryCode
-      },
-      deposit: {
-        required: apt.depositRequired,
-        amount: apt.depositAmount ? Number(apt.depositAmount) : null,
-        paid: apt.depositPaid,
-        paidAt: apt.depositPaidAt
-      },
-      cancellation: apt.cancelledAt
-        ? {
-            cancelledAt: apt.cancelledAt,
-            reason: apt.cancellationReason,
-            cancelledBy: apt.cancelledBy
-          }
-        : null,
-      createdAt: apt.createdAt
-    }));
+    const formattedAppointments = appointments.map((apt) => {
+      // SECURITY FIX: Decrypt patient PII before returning to professional
+      const decryptedEmail = decrypt(apt.patient.email);
+      const decryptedWhatsappNumber = decrypt(apt.patient.whatsappNumber);
+
+      return {
+        id: apt.id,
+        bookingReference: apt.bookingReference,
+        date: apt.date.toISOString().split('T')[0],
+        startTime:
+          apt.startTime instanceof Date
+            ? `${apt.startTime.getHours().toString().padStart(2, '0')}:${apt.startTime.getMinutes().toString().padStart(2, '0')}`
+            : String(apt.startTime).substring(0, 5),
+        endTime:
+          apt.endTime instanceof Date
+            ? `${apt.endTime.getHours().toString().padStart(2, '0')}:${apt.endTime.getMinutes().toString().padStart(2, '0')}`
+            : String(apt.endTime).substring(0, 5),
+        status: apt.status,
+        patient: {
+          id: apt.patient.id,
+          firstName: apt.patient.firstName,
+          lastName: apt.patient.lastName,
+          fullName: `${apt.patient.firstName} ${apt.patient.lastName}`,
+          email: decryptedEmail,
+          whatsappNumber: decryptedWhatsappNumber,
+          countryCode: apt.patient.countryCode
+        },
+        deposit: {
+          required: apt.depositRequired,
+          amount: apt.depositAmount ? Number(apt.depositAmount) : null,
+          paid: apt.depositPaid,
+          paidAt: apt.depositPaidAt
+        },
+        cancellation: apt.cancelledAt
+          ? {
+              cancelledAt: apt.cancelledAt,
+              reason: apt.cancellationReason,
+              cancelledBy: apt.cancelledBy
+            }
+          : null,
+        createdAt: apt.createdAt
+      };
+    });
 
     return res.json({
       success: true,
@@ -157,7 +168,7 @@ export const getAppointments = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting appointments:', error);
+    logger.error('Error getting appointments:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener las citas'
@@ -225,6 +236,10 @@ export const getAppointmentById = async (req: AuthRequest, res: Response) => {
       });
     }
 
+    // SECURITY FIX: Decrypt patient PII before returning to professional
+    const decryptedEmail = decrypt(appointment.patient.email);
+    const decryptedWhatsappNumber = decrypt(appointment.patient.whatsappNumber);
+
     // Format response
     const formattedAppointment = {
       id: appointment.id,
@@ -244,8 +259,8 @@ export const getAppointmentById = async (req: AuthRequest, res: Response) => {
         firstName: appointment.patient.firstName,
         lastName: appointment.patient.lastName,
         fullName: `${appointment.patient.firstName} ${appointment.patient.lastName}`,
-        email: appointment.patient.email,
-        whatsappNumber: appointment.patient.whatsappNumber,
+        email: decryptedEmail,
+        whatsappNumber: decryptedWhatsappNumber,
         countryCode: appointment.patient.countryCode
       },
       deposit: {
@@ -276,7 +291,7 @@ export const getAppointmentById = async (req: AuthRequest, res: Response) => {
       data: formattedAppointment
     });
   } catch (error) {
-    console.error('Error getting appointment:', error);
+    logger.error('Error getting appointment:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener la cita'
@@ -365,11 +380,37 @@ export const cancelAppointmentByProfessional = async (req: AuthRequest, res: Res
         googleEventId: appointment.googleEventId,
         status: 'CANCELLED'
       }).catch(err => {
-        console.error('Google Calendar update error (non-blocking):', err);
+        logger.error('Google Calendar update error (non-blocking):', err);
       });
     }
 
-    // TODO: Send cancellation notification to patient via WhatsApp/Email
+    // Emit real-time update to professional's dashboard
+    emitToProfessional(professionalId, WebSocketEvent.APPOINTMENT_CANCELLED, {
+      appointmentId: updatedAppointment.id,
+      bookingReference: updatedAppointment.bookingReference,
+      status: updatedAppointment.status,
+      cancelledAt: updatedAppointment.cancelledAt,
+      cancellationReason: updatedAppointment.cancellationReason
+    });
+
+    // Emit to admin dashboard for platform statistics
+    emitToAdmins(WebSocketEvent.APPOINTMENT_CANCELLED, {
+      professionalId,
+      appointmentId: updatedAppointment.id
+    });
+
+    // Send cancellation notification to patient via WhatsApp and Email
+    // These services fetch the appointment data internally, so we only pass the appointmentId
+    try {
+      await Promise.all([
+        sendCancellationNotification({ appointmentId: updatedAppointment.id }),
+        sendCancellationEmail({ appointmentId: updatedAppointment.id })
+      ]);
+    } catch (notificationError) {
+      // Log notification errors but don't block the response
+      // The appointment is already cancelled in the database
+      logger.error('Error sending cancellation notifications (non-blocking):', notificationError);
+    }
 
     return res.json({
       success: true,
@@ -381,7 +422,7 @@ export const cancelAppointmentByProfessional = async (req: AuthRequest, res: Res
       }
     });
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    logger.error('Error cancelling appointment:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al cancelar la cita'
@@ -463,9 +504,24 @@ export const updateAppointmentStatus = async (req: AuthRequest, res: Response) =
         googleEventId: appointment.googleEventId,
         status
       }).catch(err => {
-        console.error('Google Calendar update error (non-blocking):', err);
+        logger.error('Google Calendar update error (non-blocking):', err);
       });
     }
+
+    // Emit real-time update to professional's dashboard
+    emitToProfessional(professionalId, WebSocketEvent.APPOINTMENT_STATUS_CHANGED, {
+      appointmentId: updatedAppointment.id,
+      bookingReference: updatedAppointment.bookingReference,
+      status: updatedAppointment.status,
+      previousStatus: appointment.status
+    });
+
+    // Emit to admin dashboard for platform statistics
+    emitToAdmins(WebSocketEvent.APPOINTMENT_STATUS_CHANGED, {
+      professionalId,
+      appointmentId: updatedAppointment.id,
+      newStatus: updatedAppointment.status
+    });
 
     return res.json({
       success: true,
@@ -476,7 +532,7 @@ export const updateAppointmentStatus = async (req: AuthRequest, res: Response) =
       }
     });
   } catch (error) {
-    console.error('Error updating appointment status:', error);
+    logger.error('Error updating appointment status:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al actualizar el estado de la cita'
@@ -593,7 +649,7 @@ export const getAppointmentsSummary = async (req: AuthRequest, res: Response) =>
       }
     });
   } catch (error) {
-    console.error('Error getting appointments summary:', error);
+    logger.error('Error getting appointments summary:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener el resumen de citas'

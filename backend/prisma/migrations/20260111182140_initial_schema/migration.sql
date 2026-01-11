@@ -66,6 +66,7 @@ CREATE TABLE "patients" (
     "lastName" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "whatsappNumber" TEXT NOT NULL,
+    "whatsappNumberHash" TEXT NOT NULL,
     "countryCode" TEXT NOT NULL DEFAULT '+54',
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -286,6 +287,22 @@ CREATE TABLE "slot_holds" (
     CONSTRAINT "slot_holds_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "webhook_events" (
+    "id" TEXT NOT NULL,
+    "paymentId" TEXT NOT NULL,
+    "requestId" TEXT NOT NULL,
+    "eventType" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "requestBody" TEXT NOT NULL,
+    "requestHeaders" TEXT NOT NULL,
+    "responseBody" TEXT,
+    "errorMessage" TEXT,
+    "processedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "webhook_events_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
@@ -312,6 +329,9 @@ CREATE INDEX "patients_professionalId_idx" ON "patients"("professionalId");
 
 -- CreateIndex
 CREATE INDEX "patients_email_idx" ON "patients"("email");
+
+-- CreateIndex
+CREATE INDEX "patients_whatsappNumberHash_idx" ON "patients"("whatsappNumberHash");
 
 -- CreateIndex
 CREATE INDEX "patients_createdAt_idx" ON "patients"("createdAt");
@@ -411,6 +431,15 @@ CREATE INDEX "slot_holds_expiresAt_idx" ON "slot_holds"("expiresAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "slot_holds_professionalId_date_startTime_key" ON "slot_holds"("professionalId", "date", "startTime");
+
+-- CreateIndex
+CREATE INDEX "webhook_events_paymentId_idx" ON "webhook_events"("paymentId");
+
+-- CreateIndex
+CREATE INDEX "webhook_events_processedAt_idx" ON "webhook_events"("processedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "webhook_events_paymentId_requestId_key" ON "webhook_events"("paymentId", "requestId");
 
 -- AddForeignKey
 ALTER TABLE "professionals" ADD CONSTRAINT "professionals_userId_fkey" FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

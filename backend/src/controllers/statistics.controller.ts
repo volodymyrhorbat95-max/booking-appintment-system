@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 
 // ============================================
@@ -8,12 +9,26 @@ import prisma from '../config/database';
 
 export async function getMyStatistics(req: Request, res: Response) {
   try {
-    const professionalId = req.user?.id;
+    // SECURITY FIX: req.user?.id is userId, not professionalId
+    // We must lookup the Professional record by userId first
+    const userId = req.user?.id;
     const { startDate, endDate } = req.query;
 
-    if (!professionalId) {
+    if (!userId) {
       return res.status(401).json({ success: false, error: 'No autorizado' });
     }
+
+    // Get professional record from userId
+    const professional = await prisma.professional.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!professional) {
+      return res.status(404).json({ success: false, error: 'Profesional no encontrado' });
+    }
+
+    const professionalId = professional.id;
 
     // Default to last 12 months if no dates provided
     const end = endDate ? new Date(endDate as string) : new Date();
@@ -124,7 +139,7 @@ export async function getMyStatistics(req: Request, res: Response) {
       }
     });
   } catch (error) {
-    console.error('Error fetching statistics:', error);
+    logger.error('Error fetching statistics:', error);
     res.status(500).json({ success: false, error: 'Error al obtener estadísticas' });
   }
 }

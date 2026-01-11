@@ -1,6 +1,7 @@
 import prisma from '../config/database';
 import { sendReminder, cancelScheduledReminders } from './whatsapp.service';
 import { sendReminderEmail } from './email.service';
+import { logger, ServiceLogger } from '../utils/logger';
 
 // ============================================
 // REMINDER SCHEDULER
@@ -19,7 +20,7 @@ const DEPOSIT_TIME_LIMIT_MINUTES = parseInt(process.env.DEPOSIT_TIME_LIMIT_MINUT
 // PROCESS SINGLE REMINDER
 // ============================================
 
-async function processReminder(reminder: {
+export async function processReminder(reminder: {
   id: string;
   appointmentId: string;
   appointment: {
@@ -38,7 +39,7 @@ async function processReminder(reminder: {
         where: { id: reminder.id },
         data: { status: 'cancelled' }
       });
-      console.log(`Appointment ${reminder.appointmentId} is ${reminder.appointment.status}, cancelling reminder`);
+      ServiceLogger.reminder(`Appointment ${reminder.appointmentId} is ${reminder.appointment.status}, cancelling reminder`);
       return false;
     }
 
@@ -50,7 +51,7 @@ async function processReminder(reminder: {
       try {
         await sendReminderEmail({ appointmentId: reminder.appointmentId });
       } catch (emailError) {
-        console.error(`Failed to send email reminder for ${reminder.appointmentId}:`, emailError);
+        logger.error(`Failed to send email reminder for ${reminder.appointmentId}:`, emailError);
         // Don't fail the whole reminder if email fails
       }
     }
@@ -64,14 +65,14 @@ async function processReminder(reminder: {
           sentAt: new Date()
         }
       });
-      console.log(`Reminder sent successfully for appointment ${reminder.appointmentId}`);
+      ServiceLogger.reminder(`Reminder sent successfully for appointment ${reminder.appointmentId}`);
       return true;
     } else {
-      console.error(`Failed to send WhatsApp reminder for appointment ${reminder.appointmentId}`);
+      logger.error(`Failed to send WhatsApp reminder for appointment ${reminder.appointmentId}`);
       return false;
     }
   } catch (error) {
-    console.error(`Error processing reminder ${reminder.id}:`, error);
+    logger.error(`Error processing reminder ${reminder.id}:`, error);
     return false;
   }
 }
@@ -80,7 +81,7 @@ async function processReminder(reminder: {
 // PROCESS ALL DUE REMINDERS
 // ============================================
 
-async function processScheduledReminders(): Promise<void> {
+export async function processScheduledReminders(): Promise<void> {
   // Prevent concurrent processing
   if (isProcessing) {
     return;
@@ -116,16 +117,16 @@ async function processScheduledReminders(): Promise<void> {
     });
 
     if (dueReminders.length > 0) {
-      console.log(`Processing ${dueReminders.length} due reminders...`);
+      ServiceLogger.reminder(`Processing ${dueReminders.length} due reminders...`);
 
       for (const reminder of dueReminders) {
         await processReminder(reminder);
       }
 
-      console.log(`Finished processing ${dueReminders.length} reminders`);
+      ServiceLogger.reminder(`Finished processing ${dueReminders.length} reminders`);
     }
   } catch (error) {
-    console.error('Error in reminder scheduler:', error);
+    logger.error('Error in reminder scheduler:', error);
   } finally {
     isProcessing = false;
   }
@@ -136,7 +137,7 @@ async function processScheduledReminders(): Promise<void> {
 // Requirement 3.6: If deposit is not paid within time limit, slot is released
 // ============================================
 
-async function releaseUnpaidDepositAppointments(): Promise<void> {
+export async function releaseUnpaidDepositAppointments(): Promise<void> {
   // Prevent concurrent processing
   if (isCleaningDeposits) {
     return;
@@ -172,7 +173,7 @@ async function releaseUnpaidDepositAppointments(): Promise<void> {
     });
 
     if (expiredAppointments.length > 0) {
-      console.log(`Releasing ${expiredAppointments.length} unpaid deposit appointments...`);
+      ServiceLogger.reminder(`Releasing ${expiredAppointments.length} unpaid deposit appointments...`);
 
       for (const appointment of expiredAppointments) {
         try {
@@ -190,16 +191,16 @@ async function releaseUnpaidDepositAppointments(): Promise<void> {
           // Cancel any scheduled reminders for this appointment
           await cancelScheduledReminders(appointment.id);
 
-          console.log(`Released appointment ${appointment.bookingReference} - deposit not paid`);
+          ServiceLogger.reminder(`Released appointment ${appointment.bookingReference} - deposit not paid`);
         } catch (error) {
-          console.error(`Error releasing appointment ${appointment.id}:`, error);
+          logger.error(`Error releasing appointment ${appointment.id}:`, error);
         }
       }
 
-      console.log(`Finished releasing ${expiredAppointments.length} unpaid deposit appointments`);
+      ServiceLogger.reminder(`Finished releasing ${expiredAppointments.length} unpaid deposit appointments`);
     }
   } catch (error) {
-    console.error('Error in deposit cleanup scheduler:', error);
+    logger.error('Error in deposit cleanup scheduler:', error);
   } finally {
     isCleaningDeposits = false;
   }
@@ -211,7 +212,7 @@ async function releaseUnpaidDepositAppointments(): Promise<void> {
 
 export function startReminderScheduler(): void {
   if (schedulerInterval) {
-    console.log('Reminder scheduler already running');
+    ServiceLogger.reminder('Reminder scheduler already running');
     return;
   }
 
@@ -227,20 +228,20 @@ export function startReminderScheduler(): void {
   // Run deposit cleanup every 60 seconds
   depositCleanupInterval = setInterval(releaseUnpaidDepositAppointments, 60 * 1000);
 
-  console.log('Reminder scheduler started (interval: 30 seconds)');
-  console.log(`Deposit cleanup scheduler started (interval: 60 seconds, time limit: ${DEPOSIT_TIME_LIMIT_MINUTES} minutes)`);
+  ServiceLogger.reminder('Reminder scheduler started (interval: 30 seconds)');
+  ServiceLogger.reminder(`Deposit cleanup scheduler started (interval: 60 seconds, time limit: ${DEPOSIT_TIME_LIMIT_MINUTES} minutes)`);
 }
 
 export function stopReminderScheduler(): void {
   if (schedulerInterval) {
     clearInterval(schedulerInterval);
     schedulerInterval = null;
-    console.log('Reminder scheduler stopped');
+    ServiceLogger.reminder('Reminder scheduler stopped');
   }
   if (depositCleanupInterval) {
     clearInterval(depositCleanupInterval);
     depositCleanupInterval = null;
-    console.log('Deposit cleanup scheduler stopped');
+    ServiceLogger.reminder('Deposit cleanup scheduler stopped');
   }
 }
 
@@ -258,5 +259,5 @@ export async function shutdownWorker(): Promise<void> {
     waitCount++;
   }
 
-  console.log('Reminder worker shut down');
+  ServiceLogger.reminder('Reminder worker shut down');
 }

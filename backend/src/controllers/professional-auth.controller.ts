@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import type { Prisma } from '@prisma/client';
 import { generateToken } from '../utils/jwt';
@@ -140,6 +141,8 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
     const { password: _, ...userWithoutPassword } = user!;
 
     // Remove googleRefreshToken from professional data before sending to client
+    // Section 13.2: Data Protection - OAuth refresh tokens must NEVER be exposed in API responses
+    // Note: We only store googleRefreshToken (not access tokens) as per OAuth2 best practices
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { googleRefreshToken: __, ...professionalWithoutToken } = professional || {} as Record<string, unknown>;
 
@@ -156,7 +159,7 @@ export const googleAuth = async (req: Request, res: Response): Promise<void> => 
       message: isNewUser ? 'Account created successfully' : 'Login successful'
     } as ApiResponse<GoogleAuthResponse>);
   } catch (error) {
-    console.error('Google auth error:', error);
+    logger.error('Google auth error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -205,6 +208,8 @@ export const getProfessionalProfile = async (req: Request, res: Response): Promi
     }
 
     // Remove sensitive googleRefreshToken from response (Section 13.2 - Data Protection)
+    // OAuth refresh tokens must NEVER be exposed in API responses
+    // Note: We only store googleRefreshToken (not access tokens) as per OAuth2 best practices
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { googleRefreshToken: _, ...professionalWithoutToken } = professional;
 
@@ -213,7 +218,7 @@ export const getProfessionalProfile = async (req: Request, res: Response): Promi
       data: professionalWithoutToken
     });
   } catch (error) {
-    console.error('Get professional profile error:', error);
+    logger.error('Get professional profile error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'

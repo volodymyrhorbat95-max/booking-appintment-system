@@ -97,8 +97,9 @@ model Patient {
 
   firstName       String
   lastName        String
-  email           String
-  whatsappNumber  String    // Including country code (e.g., +5491112345678)
+  email           String                  // ENCRYPTED (AES-256-GCM)
+  whatsappNumber  String                  // ENCRYPTED (AES-256-GCM) - Including country code (e.g., +5491112345678)
+  whatsappNumberHash String               // SHA-256 hash for lookup (not encrypted)
   countryCode     String    @default("+54")
 
   createdAt       DateTime  @default(now())
@@ -110,6 +111,7 @@ model Patient {
   // Performance indexes (Section 12.1 - Speed)
   @@index([professionalId]) // Fast patient lookup by professional
   @@index([email]) // Fast patient search by email
+  @@index([whatsappNumberHash]) // Fast patient lookup by phone for WhatsApp webhooks
   @@index([createdAt]) // Fast sorting by creation date
   @@map("patients")
 }
@@ -517,4 +519,40 @@ model SlotHold {
   @@unique([professionalId, date, startTime])
   @@index([expiresAt])
   @@map("slot_holds")
+}
+
+// ============================================
+// WEBHOOK EVENTS (Idempotency tracking for payment webhooks)
+// Prevents double processing of the same webhook
+// ============================================
+
+model WebhookEvent {
+  id            String    @id @default(uuid())
+
+  // Mercado Pago identifiers
+  paymentId     String    // Mercado Pago payment ID
+  requestId     String    // x-request-id header from webhook
+
+  eventType     String    // 'payment', 'subscription', etc.
+  status        String    // 'processed', 'failed', 'ignored'
+
+  // Audit trail
+  requestBody   String    @db.Text // Full webhook body as JSON string
+  requestHeaders String   @db.Text // Relevant headers as JSON string
+  responseBody  String?   @db.Text // Our response as JSON string
+
+  // Error tracking
+  errorMessage  String?
+
+  processedAt   DateTime  @default(now())
+
+  // Unique constraint: combination of paymentId and requestId
+  // This prevents processing the same webhook twice
+  @@unique([paymentId, requestId])
+
+  // Performance indexes
+  @@index([paymentId]) // Fast lookup by payment ID
+  @@index([processedAt]) // For cleanup queries (delete old events after 90 days)
+
+  @@map("webhook_events")
 }

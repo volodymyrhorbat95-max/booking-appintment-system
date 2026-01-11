@@ -4,6 +4,7 @@
 // ============================================
 
 import prisma from '../../src/config/database';
+import { encrypt, hashForLookup } from '../../src/utils/encryption';
 
 // Argentine first names and last names for realistic data
 const firstNames = [
@@ -43,23 +44,44 @@ export const seedPatients = async (professionals: any[]) => {
       const email = `${firstName.toLowerCase()}.${lastName.toLowerCase()}${profIndex}${i}@example.com`;
       const whatsappNumber = generatePhoneNumber(phoneIndex++);
 
-      const patient = await prisma.patient.upsert({
+      // Encrypt sensitive patient data
+      const encryptedEmail = encrypt(email);
+      const encryptedWhatsappNumber = encrypt(whatsappNumber);
+      const whatsappNumberHash = hashForLookup(whatsappNumber);
+
+      // Check if patient exists by hash (faster lookup)
+      const existingPatient = await prisma.patient.findFirst({
         where: {
-          professionalId_whatsappNumber: {
-            professionalId: professional.id,
-            whatsappNumber
-          }
-        },
-        update: {},
-        create: {
           professionalId: professional.id,
-          firstName,
-          lastName,
-          email,
-          whatsappNumber,
-          countryCode: '+54'
+          whatsappNumberHash
         }
       });
+
+      let patient;
+      if (existingPatient) {
+        // Update existing patient
+        patient = await prisma.patient.update({
+          where: { id: existingPatient.id },
+          data: {
+            firstName,
+            lastName,
+            email: encryptedEmail
+          }
+        });
+      } else {
+        // Create new patient
+        patient = await prisma.patient.create({
+          data: {
+            professionalId: professional.id,
+            firstName,
+            lastName,
+            email: encryptedEmail,
+            whatsappNumber: encryptedWhatsappNumber,
+            whatsappNumberHash,
+            countryCode: '+54'
+          }
+        });
+      }
       patientsForProf.push(patient);
       createdPatients.push(patient);
     }

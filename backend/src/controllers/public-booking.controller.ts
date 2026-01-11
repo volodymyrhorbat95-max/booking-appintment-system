@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import {
   createSlotHold,
@@ -183,7 +184,7 @@ export const getBookingPageData = async (req: Request, res: Response) => {
       data: response
     });
   } catch (error) {
-    console.error('Error getting booking page data:', error);
+    logger.error('Error getting booking page data:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener datos de la página de reservas'
@@ -435,7 +436,7 @@ export const getAvailableSlots = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting available slots:', error);
+    logger.error('Error getting available slots:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener horarios disponibles'
@@ -508,7 +509,7 @@ export const holdSlot = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error holding slot:', error);
+    logger.error('Error holding slot:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al reservar el horario temporalmente'
@@ -562,7 +563,7 @@ export const releaseHold = async (req: Request, res: Response) => {
       data: { released }
     });
   } catch (error) {
-    console.error('Error releasing slot hold:', error);
+    logger.error('Error releasing slot hold:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al liberar el horario'
@@ -580,7 +581,7 @@ export const cleanupHolds = async (_req: Request, res: Response) => {
       data: { cleanedUp: count }
     });
   } catch (error) {
-    console.error('Error cleaning up holds:', error);
+    logger.error('Error cleaning up holds:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al limpiar reservas expiradas'

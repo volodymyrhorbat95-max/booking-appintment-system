@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { logger } from '../utils/logger';
 import type { AuthRequest } from '../middlewares/auth.middleware';
 import prisma from '../config/database';
 import {
@@ -55,7 +56,7 @@ export const getStatus = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Get Google Calendar status error:', error);
+    logger.error('Get Google Calendar status error:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al verificar conexión con Google Calendar'
@@ -93,7 +94,7 @@ export const getConnectUrl = async (req: AuthRequest, res: Response) => {
       data: { authUrl }
     });
   } catch (error) {
-    console.error('Get connect URL error:', error);
+    logger.error('Get connect URL error:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al generar URL de autorización'
@@ -139,7 +140,7 @@ export const handleCallback = async (req: AuthRequest, res: Response) => {
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     return res.redirect(`${frontendUrl}/professional/google-calendar?success=true`);
   } catch (error) {
-    console.error('OAuth callback error:', error);
+    logger.error('OAuth callback error:', error);
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
     return res.redirect(`${frontendUrl}/professional/google-calendar?error=callback_error`);
   }
@@ -182,7 +183,7 @@ export const disconnect = async (req: AuthRequest, res: Response) => {
       message: 'Google Calendar desconectado correctamente'
     });
   } catch (error) {
-    console.error('Disconnect calendar error:', error);
+    logger.error('Disconnect calendar error:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al desconectar Google Calendar'
@@ -230,7 +231,7 @@ export const syncCalendar = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Sync calendar error:', error);
+    logger.error('Sync calendar error:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al sincronizar con Google Calendar'
@@ -292,7 +293,7 @@ export const getExternalEvents = async (req: AuthRequest, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('Get external events error:', error);
+    logger.error('Get external events error:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener eventos externos'

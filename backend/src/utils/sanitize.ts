@@ -6,10 +6,12 @@
 /**
  * List of sensitive fields that should NEVER be sent to clients
  * These fields are internal to the system or contain secrets
+ *
+ * Note: We only store googleRefreshToken (not access tokens) as per OAuth2 best practices.
+ * Access tokens are short-lived and obtained on-demand from the refresh token.
  */
 const SENSITIVE_PROFESSIONAL_FIELDS = [
-  'googleRefreshToken', // OAuth refresh tokens are secrets
-  'googleAccessToken',  // OAuth access tokens are secrets
+  'googleRefreshToken', // OAuth refresh tokens are secrets - used to obtain access tokens
 ] as const;
 
 const SENSITIVE_USER_FIELDS = [

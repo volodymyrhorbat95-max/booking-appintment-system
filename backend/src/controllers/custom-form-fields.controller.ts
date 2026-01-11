@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import type { AuthRequest } from '../middlewares/auth.middleware';
 import { FieldType } from '../types';
@@ -103,7 +104,7 @@ export const getFormFields = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting form fields:', error);
+    logger.error('Error getting form fields:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener campos del formulario'
@@ -191,7 +192,7 @@ export const addCustomField = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error adding custom field:', error);
+    logger.error('Error adding custom field:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al crear campo personalizado'
@@ -305,7 +306,7 @@ export const updateCustomField = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error updating custom field:', error);
+    logger.error('Error updating custom field:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al actualizar campo personalizado'
@@ -384,7 +385,7 @@ export const deleteCustomField = async (req: AuthRequest, res: Response) => {
       message: 'Campo eliminado correctamente'
     });
   } catch (error) {
-    console.error('Error deleting custom field:', error);
+    logger.error('Error deleting custom field:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al eliminar campo personalizado'
@@ -469,7 +470,7 @@ export const reorderCustomFields = async (req: AuthRequest, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('Error reordering custom fields:', error);
+    logger.error('Error reordering custom fields:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al reordenar campos'
@@ -540,7 +541,7 @@ export const getPublicFormFields = async (req: AuthRequest, res: Response) => {
       data: allFields
     });
   } catch (error) {
-    console.error('Error getting public form fields:', error);
+    logger.error('Error getting public form fields:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener campos del formulario'

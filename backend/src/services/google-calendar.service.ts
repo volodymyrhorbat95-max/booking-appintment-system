@@ -1,5 +1,7 @@
 import { google, calendar_v3 } from 'googleapis';
 import prisma from '../config/database';
+import { logger, ServiceLogger } from '../utils/logger';
+import { encrypt, decrypt } from '../utils/encryption';
 
 // ============================================
 // GOOGLE CALENDAR SERVICE
@@ -35,17 +37,22 @@ const getAuthenticatedClient = async (professionalId: string) => {
     throw new Error('Google Calendar not connected');
   }
 
+  // SECURITY FIX: Decrypt Google refresh token before use
+  const decryptedRefreshToken = decrypt(professional.googleRefreshToken);
+
   const oauth2Client = createOAuth2Client();
   oauth2Client.setCredentials({
-    refresh_token: professional.googleRefreshToken
+    refresh_token: decryptedRefreshToken
   });
 
   // Auto-refresh token if needed
   oauth2Client.on('tokens', async (tokens) => {
     if (tokens.refresh_token) {
+      // SECURITY FIX: Encrypt refresh token before storing
+      const encryptedRefreshToken = encrypt(tokens.refresh_token);
       await prisma.professional.update({
         where: { id: professionalId },
-        data: { googleRefreshToken: tokens.refresh_token }
+        data: { googleRefreshToken: encryptedRefreshToken }
       });
     }
   });
@@ -76,7 +83,7 @@ export const handleOAuthCallback = async (code: string, professionalId: string):
     const { tokens } = await oauth2Client.getToken(code);
 
     if (!tokens.refresh_token) {
-      console.error('No refresh token received');
+      logger.error('No refresh token received');
       return false;
     }
 
@@ -88,19 +95,22 @@ export const handleOAuthCallback = async (code: string, professionalId: string):
     const primaryCalendar = calendarList.data.items?.find(cal => cal.primary);
     const calendarId = primaryCalendar?.id || 'primary';
 
+    // SECURITY FIX: Encrypt refresh token before storing in database
+    const encryptedRefreshToken = encrypt(tokens.refresh_token);
+
     // Save to database
     await prisma.professional.update({
       where: { id: professionalId },
       data: {
         googleCalendarConnected: true,
-        googleRefreshToken: tokens.refresh_token,
+        googleRefreshToken: encryptedRefreshToken,
         googleCalendarId: calendarId
       }
     });
 
     return true;
   } catch (error) {
-    console.error('OAuth callback error:', error);
+    logger.error('OAuth callback error:', error);
     return false;
   }
 };
@@ -124,7 +134,7 @@ export const disconnectCalendar = async (professionalId: string): Promise<boolea
 
     return true;
   } catch (error) {
-    console.error('Disconnect calendar error:', error);
+    logger.error('Disconnect calendar error:', error);
     return false;
   }
 };
@@ -226,7 +236,7 @@ export const createCalendarEvent = async (params: CreateEventParams): Promise<st
 
     return googleEventId || null;
   } catch (error) {
-    console.error('Create calendar event error:', error);
+    logger.error('Create calendar event error:', error);
     return null;
   }
 };
@@ -306,7 +316,7 @@ export const updateCalendarEvent = async (params: UpdateEventParams): Promise<bo
 
     return true;
   } catch (error) {
-    console.error('Update calendar event error:', error);
+    logger.error('Update calendar event error:', error);
     return false;
   }
 };
@@ -339,7 +349,7 @@ export const deleteCalendarEvent = async (
 
     return true;
   } catch (error) {
-    console.error('Delete calendar event error:', error);
+    logger.error('Delete calendar event error:', error);
     return false;
   }
 };
@@ -431,7 +441,7 @@ export const syncFromGoogleCalendar = async (professionalId: string): Promise<nu
 
     return syncedCount;
   } catch (error) {
-    console.error('Sync from Google Calendar error:', error);
+    logger.error('Sync from Google Calendar error:', error);
     return 0;
   }
 };
@@ -465,7 +475,7 @@ export const checkConnectionStatus = async (professionalId: string): Promise<{
       calendarId: professional.googleCalendarId
     };
   } catch (error) {
-    console.error('Check connection status error:', error);
+    logger.error('Check connection status error:', error);
 
     // If token is invalid, disconnect
     await prisma.professional.update({
@@ -513,7 +523,7 @@ export const getBusyTimes = async (
       end: e.endTime
     }));
   } catch (error) {
-    console.error('Get busy times error:', error);
+    logger.error('Get busy times error:', error);
     return [];
   }
 };

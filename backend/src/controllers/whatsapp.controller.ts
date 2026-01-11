@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import {
   getMessageTemplates,
@@ -64,7 +65,7 @@ export const getReminders = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting reminder settings:', error);
+    logger.error('Error getting reminder settings:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener configuración de recordatorios' });
   }
 };
@@ -113,7 +114,7 @@ export const updateReminders = async (req: Request, res: Response) => {
       message: 'Configuración de recordatorios actualizada'
     });
   } catch (error) {
-    console.error('Error updating reminder settings:', error);
+    logger.error('Error updating reminder settings:', error);
     return res.status(500).json({ success: false, error: 'Error al actualizar configuración' });
   }
 };
@@ -151,7 +152,7 @@ export const getTemplates = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting templates:', error);
+    logger.error('Error getting templates:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener plantillas' });
   }
 };
@@ -203,7 +204,7 @@ export const updateTemplate = async (req: Request, res: Response) => {
       message: 'Plantilla actualizada correctamente'
     });
   } catch (error) {
-    console.error('Error updating template:', error);
+    logger.error('Error updating template:', error);
     return res.status(500).json({ success: false, error: 'Error al actualizar plantilla' });
   }
 };
@@ -246,7 +247,7 @@ export const resetTemplate = async (req: Request, res: Response) => {
       message: 'Plantilla restablecida a valores por defecto'
     });
   } catch (error) {
-    console.error('Error resetting template:', error);
+    logger.error('Error resetting template:', error);
     return res.status(500).json({ success: false, error: 'Error al restablecer plantilla' });
   }
 };
@@ -271,7 +272,7 @@ export const handleIncomingMessage = async (req: Request, res: Response) => {
       );
 
       if (!isValid) {
-        console.error('Invalid Twilio signature');
+        logger.error('Invalid Twilio signature');
         return res.status(403).send('Forbidden');
       }
     }
@@ -282,7 +283,7 @@ export const handleIncomingMessage = async (req: Request, res: Response) => {
       return res.status(400).send('Bad Request');
     }
 
-    console.log(`Incoming WhatsApp message from ${From}: ${Body}`);
+    logger.info(`Incoming WhatsApp message from ${From}: ${Body}`);
 
     // Process the message
     const result = await processIncomingMessage({
@@ -290,13 +291,13 @@ export const handleIncomingMessage = async (req: Request, res: Response) => {
       body: Body
     });
 
-    console.log('Message processing result:', result);
+    logger.info('Message processing result:', result);
 
     // Respond to Twilio (TwiML empty response)
     res.set('Content-Type', 'text/xml');
     return res.send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   } catch (error) {
-    console.error('Error handling incoming WhatsApp message:', error);
+    logger.error('Error handling incoming WhatsApp message:', error);
     res.set('Content-Type', 'text/xml');
     return res.send('<?xml version="1.0" encoding="UTF-8"?><Response></Response>');
   }
@@ -343,7 +344,7 @@ export const sendTestMessage = async (req: Request, res: Response) => {
       return res.status(500).json({ success: false, error: 'Error al enviar mensaje de prueba' });
     }
   } catch (error) {
-    console.error('Error sending test message:', error);
+    logger.error('Error sending test message:', error);
     return res.status(500).json({ success: false, error: 'Error al enviar mensaje de prueba' });
   }
 };

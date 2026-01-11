@@ -82,12 +82,13 @@ export const cancelBookingSchema = z.object({
 
 /**
  * Slot hold validation
+ * Used for both holding and releasing time slots (Requirement 10.1)
  */
 export const holdSlotSchema = z.object({
   date: z
     .string()
     .regex(dateRegex, 'Invalid date format (use YYYY-MM-DD)'),
-  startTime: z
+  time: z
     .string()
     .regex(timeRegex, 'Invalid time format (use HH:MM)'),
   sessionId: z

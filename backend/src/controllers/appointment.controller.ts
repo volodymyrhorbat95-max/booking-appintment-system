@@ -1,4 +1,5 @@
 import type { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import { v4 as uuidv4 } from 'uuid';
 import { createCalendarEvent, updateCalendarEvent } from '../services/google-calendar.service';
@@ -14,6 +15,8 @@ import {
 } from '../services/email.service';
 import { createDepositPreference } from '../services/mercadopago.service';
 import { consumeSlotHold, validateHoldForBooking } from '../services/slot-hold.service';
+import { emitToProfessional, emitToAdmins, WebSocketEvent } from '../config/socket.config';
+import { encrypt, decrypt, hashForLookup } from '../utils/encryption';
 
 // ============================================
 // APPOINTMENT CONTROLLER
@@ -185,11 +188,21 @@ export const createAppointment = async (req: Request, res: Response) => {
         throw new Error('NO_AVAILABILITY');
       }
 
+      // SECURITY FIX: Encrypt patient PII before storing
+      // Section 13.2: Data Protection - Encrypt email and whatsappNumber
+      const encryptedEmail = encrypt(email);
+      const encryptedWhatsappNumber = encrypt(fullWhatsappNumber);
+
+      // Create hash for WhatsApp number lookup (for webhook message handling)
+      // Hash is searchable, encrypted value is not
+      const whatsappNumberHash = hashForLookup(fullWhatsappNumber);
+
       // Find or create patient
+      // Search by hash (fast, indexed) instead of encrypted value
       let patient = await tx.patient.findFirst({
         where: {
           professionalId: professional.id,
-          whatsappNumber: fullWhatsappNumber
+          whatsappNumberHash: whatsappNumberHash
         }
       });
 
@@ -199,8 +212,9 @@ export const createAppointment = async (req: Request, res: Response) => {
             professionalId: professional.id,
             firstName,
             lastName,
-            email,
-            whatsappNumber: fullWhatsappNumber,
+            email: encryptedEmail,
+            whatsappNumber: encryptedWhatsappNumber,
+            whatsappNumberHash: whatsappNumberHash,
             countryCode
           }
         });
@@ -211,7 +225,7 @@ export const createAppointment = async (req: Request, res: Response) => {
           data: {
             firstName,
             lastName,
-            email
+            email: encryptedEmail
           }
         });
       }
@@ -276,6 +290,11 @@ export const createAppointment = async (req: Request, res: Response) => {
       };
     });
 
+    // SECURITY FIX: Decrypt patient PII for use in external services
+    // Email and whatsappNumber are encrypted in database
+    const decryptedEmail = decrypt(result.patient.email);
+    const decryptedWhatsappNumber = decrypt(result.patient.whatsappNumber);
+
     // ============================================
     // CONSUME SLOT HOLD (Requirement 10.1)
     // Release the hold after successful booking (non-blocking)
@@ -287,7 +306,7 @@ export const createAppointment = async (req: Request, res: Response) => {
         startTime,
         sessionId
       }).catch(err => {
-        console.error('Slot hold consumption error (non-blocking):', err);
+        logger.error('Slot hold consumption error (non-blocking):', err);
       });
     }
 
@@ -299,25 +318,25 @@ export const createAppointment = async (req: Request, res: Response) => {
       startTime,
       endTime,
       patientName: `${result.patient.firstName} ${result.patient.lastName}`,
-      patientEmail: result.patient.email,
+      patientEmail: decryptedEmail,
       status: result.appointment.status,
       bookingReference: result.appointment.bookingReference
     }).catch(err => {
-      console.error('Google Calendar sync error (non-blocking):', err);
+      logger.error('Google Calendar sync error (non-blocking):', err);
     });
 
     // Send WhatsApp booking confirmation (non-blocking)
     sendBookingConfirmation({
       appointmentId: result.appointment.id
     }).catch(err => {
-      console.error('WhatsApp confirmation error (non-blocking):', err);
+      logger.error('WhatsApp confirmation error (non-blocking):', err);
     });
 
     // Send email booking confirmation (non-blocking)
     sendBookingConfirmationEmail({
       appointmentId: result.appointment.id
     }).catch(err => {
-      console.error('Email confirmation error (non-blocking):', err);
+      logger.error('Email confirmation error (non-blocking):', err);
     });
 
     // Schedule reminders (non-blocking)
@@ -327,7 +346,25 @@ export const createAppointment = async (req: Request, res: Response) => {
       appointmentDate,
       appointmentTime: startTime
     }).catch(err => {
-      console.error('Reminder scheduling error (non-blocking):', err);
+      logger.error('Reminder scheduling error (non-blocking):', err);
+    });
+
+    // Emit real-time update to professional's dashboard
+    emitToProfessional(professional.id, WebSocketEvent.APPOINTMENT_CREATED, {
+      appointmentId: result.appointment.id,
+      bookingReference: result.appointment.bookingReference,
+      date: appointmentDate.toISOString().split('T')[0],
+      startTime: time,
+      status: result.appointment.status,
+      patientName: `${result.patient.firstName} ${result.patient.lastName}`,
+      patientEmail: decryptedEmail
+    });
+
+    // Emit to admin dashboard for platform statistics
+    emitToAdmins(WebSocketEvent.APPOINTMENT_CREATED, {
+      professionalId: professional.id,
+      appointmentId: result.appointment.id,
+      status: result.appointment.status
     });
 
     // Format response
@@ -354,7 +391,7 @@ export const createAppointment = async (req: Request, res: Response) => {
         patient: {
           firstName: result.patient.firstName,
           lastName: result.patient.lastName,
-          email: result.patient.email
+          email: decryptedEmail
         },
         deposit: professional.depositEnabled
           ? {
@@ -368,7 +405,7 @@ export const createAppointment = async (req: Request, res: Response) => {
       }
     });
   } catch (error: unknown) {
-    console.error('Error creating appointment:', error);
+    logger.error('Error creating appointment:', error);
 
     // Handle specific errors
     if (error instanceof Error) {
@@ -494,7 +531,7 @@ export const getAppointmentByReference = async (req: Request, res: Response) => 
       }
     });
   } catch (error) {
-    console.error('Error getting appointment:', error);
+    logger.error('Error getting appointment:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener la reserva'
@@ -571,7 +608,7 @@ export const cancelAppointment = async (req: Request, res: Response) => {
         googleEventId: appointment.googleEventId,
         status: 'CANCELLED'
       }).catch(err => {
-        console.error('Google Calendar update error (non-blocking):', err);
+        logger.error('Google Calendar update error (non-blocking):', err);
       });
     }
 
@@ -579,14 +616,14 @@ export const cancelAppointment = async (req: Request, res: Response) => {
     sendCancellationNotification({
       appointmentId: appointment.id
     }).catch(err => {
-      console.error('WhatsApp cancellation notification error (non-blocking):', err);
+      logger.error('WhatsApp cancellation notification error (non-blocking):', err);
     });
 
     // Send cancellation notification via email (non-blocking)
     sendCancellationEmail({
       appointmentId: appointment.id
     }).catch(err => {
-      console.error('Email cancellation notification error (non-blocking):', err);
+      logger.error('Email cancellation notification error (non-blocking):', err);
     });
 
     return res.json({
@@ -598,7 +635,7 @@ export const cancelAppointment = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error cancelling appointment:', error);
+    logger.error('Error cancelling appointment:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al cancelar la reserva'
@@ -711,7 +748,7 @@ export const createDepositPayment = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error creating deposit payment:', error);
+    logger.error('Error creating deposit payment:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al crear el pago de depósito'

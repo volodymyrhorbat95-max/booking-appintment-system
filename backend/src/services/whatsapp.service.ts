@@ -1,5 +1,7 @@
 import twilio from 'twilio';
 import prisma from '../config/database';
+import { logger, ServiceLogger } from '../utils/logger';
+import { decrypt, hashForLookup } from '../utils/encryption';
 
 type MessageTemplateType = 'BOOKING_CONFIRMATION' | 'REMINDER' | 'CANCELLATION';
 
@@ -135,12 +137,12 @@ export async function sendWhatsAppMessage({ to, message }: SendMessageParams): P
   try {
     const client = getTwilioClient();
     if (!client) {
-      console.warn('Twilio not configured - skipping WhatsApp message');
+      logger.warn('Twilio not configured - skipping WhatsApp message');
       return false;
     }
 
     if (!TWILIO_WHATSAPP_NUMBER) {
-      console.error('TWILIO_WHATSAPP_NUMBER not configured');
+      logger.error('TWILIO_WHATSAPP_NUMBER not configured');
       return false;
     }
 
@@ -152,10 +154,10 @@ export async function sendWhatsAppMessage({ to, message }: SendMessageParams): P
       to: formattedTo
     });
 
-    console.log(`WhatsApp message sent to ${to}`);
+    ServiceLogger.whatsapp('message_sent', { to: formattedTo });
     return true;
   } catch (error) {
-    console.error('Error sending WhatsApp message:', error);
+    logger.error('Error sending WhatsApp message', { error, to });
     return false;
   }
 }
@@ -179,12 +181,12 @@ export async function sendWhatsAppInteractiveMessage({
   try {
     const client = getTwilioClient();
     if (!client) {
-      console.warn('Twilio not configured - skipping WhatsApp interactive message');
+      logger.warn('Twilio not configured - skipping WhatsApp interactive message');
       return false;
     }
 
     if (!TWILIO_WHATSAPP_NUMBER) {
-      console.error('TWILIO_WHATSAPP_NUMBER not configured');
+      logger.error('TWILIO_WHATSAPP_NUMBER not configured');
       return false;
     }
 
@@ -202,10 +204,10 @@ export async function sendWhatsAppInteractiveMessage({
       to: formattedTo
     });
 
-    console.log(`WhatsApp interactive message sent to ${to}`);
+    ServiceLogger.whatsapp('interactive_message_sent', { to: formattedTo });
     return true;
   } catch (error) {
-    console.error('Error sending WhatsApp interactive message:', error);
+    logger.error('Error sending WhatsApp interactive message', { error, to });
     return false;
   }
 }
@@ -237,9 +239,12 @@ export async function sendBookingConfirmation({ appointmentId }: BookingConfirma
     });
 
     if (!appointment) {
-      console.error('Appointment not found:', appointmentId);
+      logger.error('Appointment not found', { appointmentId });
       return false;
     }
+
+    // SECURITY FIX: Decrypt patient whatsappNumber before sending
+    const decryptedWhatsappNumber = decrypt(appointment.patient.whatsappNumber);
 
     // Get template (custom or default)
     const customTemplate = appointment.professional.messageTemplates[0];
@@ -259,11 +264,11 @@ export async function sendBookingConfirmation({ appointmentId }: BookingConfirma
 
     // Send message
     return await sendWhatsAppMessage({
-      to: appointment.patient.whatsappNumber,
+      to: decryptedWhatsappNumber,
       message
     });
   } catch (error) {
-    console.error('Error sending booking confirmation:', error);
+    logger.error('Error sending booking confirmation', { error, appointmentId });
     return false;
   }
 }
@@ -295,15 +300,18 @@ export async function sendReminder({ appointmentId }: SendReminderParams): Promi
     });
 
     if (!appointment) {
-      console.error('Appointment not found:', appointmentId);
+      logger.error('Appointment not found', { appointmentId });
       return false;
     }
 
     // Don't send reminders for cancelled/completed appointments
     if (appointment.status === 'CANCELLED' || appointment.status === 'COMPLETED' || appointment.status === 'NO_SHOW') {
-      console.log('Skipping reminder for non-active appointment:', appointmentId);
+      ServiceLogger.whatsapp('reminder_skipped', { appointmentId, status: appointment.status });
       return true;
     }
+
+    // SECURITY FIX: Decrypt patient whatsappNumber before sending
+    const decryptedWhatsappNumber = decrypt(appointment.patient.whatsappNumber);
 
     // Get template (custom or default)
     const customTemplate = appointment.professional.messageTemplates[0];
@@ -323,7 +331,7 @@ export async function sendReminder({ appointmentId }: SendReminderParams): Promi
 
     // Send message
     const sent = await sendWhatsAppMessage({
-      to: appointment.patient.whatsappNumber,
+      to: decryptedWhatsappNumber,
       message
     });
 
@@ -337,7 +345,7 @@ export async function sendReminder({ appointmentId }: SendReminderParams): Promi
 
     return sent;
   } catch (error) {
-    console.error('Error sending reminder:', error);
+    logger.error('Error sending reminder', { error, appointmentId });
     return false;
   }
 }
@@ -369,9 +377,12 @@ export async function sendCancellationNotification({ appointmentId }: SendCancel
     });
 
     if (!appointment) {
-      console.error('Appointment not found:', appointmentId);
+      logger.error('Appointment not found', { appointmentId });
       return false;
     }
+
+    // SECURITY FIX: Decrypt patient whatsappNumber before sending
+    const decryptedWhatsappNumber = decrypt(appointment.patient.whatsappNumber);
 
     // Get template (custom or default)
     const customTemplate = appointment.professional.messageTemplates[0];
@@ -391,11 +402,11 @@ export async function sendCancellationNotification({ appointmentId }: SendCancel
 
     // Send message
     return await sendWhatsAppMessage({
-      to: appointment.patient.whatsappNumber,
+      to: decryptedWhatsappNumber,
       message
     });
   } catch (error) {
-    console.error('Error sending cancellation notification:', error);
+    logger.error('Error sending cancellation notification', { error, appointmentId });
     return false;
   }
 }
@@ -476,7 +487,7 @@ export async function scheduleRemindersForAppointment({
       }
     }
   } catch (error) {
-    console.error('Error scheduling reminders:', error);
+    logger.error('Error scheduling reminders', { error, appointmentId });
   }
 }
 
@@ -503,7 +514,7 @@ export async function cancelScheduledReminders(appointmentId: string): Promise<v
       }
     });
   } catch (error) {
-    console.error('Error cancelling scheduled reminders:', error);
+    logger.error('Error cancelling scheduled reminders', { error, appointmentId });
   }
 }
 
@@ -528,12 +539,14 @@ export async function processIncomingMessage({ from, body }: IncomingMessagePara
     // Clean the phone number (remove whatsapp: prefix if present)
     const cleanNumber = from.replace('whatsapp:', '').replace(/[^\d+]/g, '');
 
-    // Find the patient by WhatsApp number
+    // SECURITY FIX: WhatsApp numbers are encrypted in DB, so we can't use 'contains'
+    // Instead, search by hash which is indexed and searchable
+    const phoneHash = hashForLookup(cleanNumber);
+
+    // Find the patient by WhatsApp number hash
     const patient = await prisma.patient.findFirst({
       where: {
-        whatsappNumber: {
-          contains: cleanNumber.replace('+', '')
-        }
+        whatsappNumberHash: phoneHash
       },
       include: {
         appointments: {
@@ -565,6 +578,9 @@ export async function processIncomingMessage({ from, body }: IncomingMessagePara
     const appointment = patient.appointments[0];
     const normalizedBody = body.toLowerCase().trim();
 
+    // SECURITY FIX: Decrypt patient whatsappNumber for sending responses
+    const decryptedWhatsappNumber = decrypt(patient.whatsappNumber);
+
     // Check for confirmation keywords
     const confirmKeywords = ['si', 'sí', 'confirmo', 'confirmar', 'ok', 'yes', 'confirm', '1'];
     const cancelKeywords = ['no', 'cancelo', 'cancelar', 'cancel', '2'];
@@ -578,7 +594,7 @@ export async function processIncomingMessage({ from, body }: IncomingMessagePara
 
       // Send confirmation response
       await sendWhatsAppMessage({
-        to: patient.whatsappNumber,
+        to: decryptedWhatsappNumber,
         message: `¡Perfecto! Tu cita ha sido confirmada para el ${formatDateForMessage(appointment.date, appointment.professional.timezone)} a las ${formatTimeForMessage(appointment.startTime, appointment.professional.timezone)}. ¡Te esperamos!`
       });
 
@@ -606,7 +622,7 @@ export async function processIncomingMessage({ from, body }: IncomingMessagePara
 
       // Send cancellation response
       await sendWhatsAppMessage({
-        to: patient.whatsappNumber,
+        to: decryptedWhatsappNumber,
         message: `Tu cita del ${formatDateForMessage(appointment.date, appointment.professional.timezone)} ha sido cancelada. Si deseas reprogramar, puedes hacerlo en línea.`
       });
 
@@ -619,7 +635,7 @@ export async function processIncomingMessage({ from, body }: IncomingMessagePara
 
     // Unknown response
     await sendWhatsAppMessage({
-      to: patient.whatsappNumber,
+      to: decryptedWhatsappNumber,
       message: 'No entendí tu respuesta. Por favor responde "SI" para confirmar o "NO" para cancelar tu cita.'
     });
 
@@ -629,7 +645,7 @@ export async function processIncomingMessage({ from, body }: IncomingMessagePara
       message: 'Respuesta no reconocida'
     };
   } catch (error) {
-    console.error('Error processing incoming message:', error);
+    logger.error('Error processing incoming message', { error });
     return {
       success: false,
       message: 'Error procesando mensaje'

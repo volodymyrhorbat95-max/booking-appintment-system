@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import { hashPassword, comparePassword } from '../utils/password';
 import { generateToken } from '../utils/jwt';
@@ -67,7 +68,7 @@ export const adminLogin = async (req: Request, res: Response): Promise<void> => 
       }
     } as ApiResponse<LoginResponse>);
   } catch (error) {
-    console.error('Admin login error:', error);
+    logger.error('Admin login error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -85,7 +86,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
       message: 'Logged out successfully'
     } as ApiResponse<null>);
   } catch (error) {
-    console.error('Logout error:', error);
+    logger.error('Logout error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -146,7 +147,7 @@ export const getCurrentUser = async (req: Request, res: Response): Promise<void>
       data: userWithoutPassword
     });
   } catch (error) {
-    console.error('Get current user error:', error);
+    logger.error('Get current user error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'
@@ -197,7 +198,7 @@ export const createAdminUser = async (req: Request, res: Response): Promise<void
       message: 'Admin user created successfully'
     });
   } catch (error) {
-    console.error('Create admin error:', error);
+    logger.error('Create admin error:', error);
     res.status(500).json({
       success: false,
       error: 'Internal server error'

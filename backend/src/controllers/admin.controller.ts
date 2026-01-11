@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import type { Prisma } from '@prisma/client';
 
@@ -56,7 +57,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting dashboard stats:', error);
+    logger.error('Error getting dashboard stats:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener estadísticas' });
   }
 };
@@ -72,6 +73,22 @@ export const getProfessionals = async (req: Request, res: Response) => {
 
     const pageNum = parseInt(page as string);
     const limitNum = parseInt(limit as string);
+
+    // Validate pagination parameters (prevent DOS attacks)
+    if (isNaN(pageNum) || pageNum < 1) {
+      return res.status(400).json({
+        success: false,
+        error: 'Parámetro de página inválido (debe ser >= 1)'
+      });
+    }
+
+    if (isNaN(limitNum) || limitNum < 1 || limitNum > 100) {
+      return res.status(400).json({
+        success: false,
+        error: 'Parámetro de límite inválido (debe estar entre 1 y 100)'
+      });
+    }
+
     const skip = (pageNum - 1) * limitNum;
 
     // Build where clause
@@ -142,7 +159,7 @@ export const getProfessionals = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting professionals:', error);
+    logger.error('Error getting professionals:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener profesionales' });
   }
 };
@@ -236,7 +253,7 @@ export const getProfessionalDetail = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting professional detail:', error);
+    logger.error('Error getting professional detail:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener detalles del profesional' });
   }
 };
@@ -262,7 +279,7 @@ export const suspendProfessional = async (req: Request, res: Response) => {
       message: 'Profesional suspendido correctamente'
     });
   } catch (error) {
-    console.error('Error suspending professional:', error);
+    logger.error('Error suspending professional:', error);
     return res.status(500).json({ success: false, error: 'Error al suspender profesional' });
   }
 };
@@ -287,7 +304,7 @@ export const activateProfessional = async (req: Request, res: Response) => {
       message: 'Profesional activado correctamente'
     });
   } catch (error) {
-    console.error('Error activating professional:', error);
+    logger.error('Error activating professional:', error);
     return res.status(500).json({ success: false, error: 'Error al activar profesional' });
   }
 };
@@ -322,7 +339,7 @@ export const getPlans = async (req: Request, res: Response) => {
       }))
     });
   } catch (error) {
-    console.error('Error getting plans:', error);
+    logger.error('Error getting plans:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener planes' });
   }
 };
@@ -364,12 +381,14 @@ export const createPlan = async (req: Request, res: Response) => {
         annualPrice: Number(plan.annualPrice),
         features: plan.features,
         isActive: plan.isActive,
-        displayOrder: plan.displayOrder
+        displayOrder: plan.displayOrder,
+        subscribersCount: 0,  // New plans have zero subscribers
+        createdAt: plan.createdAt.toISOString()
       },
       message: 'Plan creado correctamente'
     });
   } catch (error) {
-    console.error('Error creating plan:', error);
+    logger.error('Error creating plan:', error);
     return res.status(500).json({ success: false, error: 'Error al crear plan' });
   }
 };
@@ -414,7 +433,7 @@ export const updatePlan = async (req: Request, res: Response) => {
       message: 'Plan actualizado correctamente'
     });
   } catch (error) {
-    console.error('Error updating plan:', error);
+    logger.error('Error updating plan:', error);
     return res.status(500).json({ success: false, error: 'Error al actualizar plan' });
   }
 };
@@ -447,7 +466,7 @@ export const deletePlan = async (req: Request, res: Response) => {
       message: 'Plan eliminado correctamente'
     });
   } catch (error) {
-    console.error('Error deleting plan:', error);
+    logger.error('Error deleting plan:', error);
     return res.status(500).json({ success: false, error: 'Error al eliminar plan' });
   }
 };
@@ -476,7 +495,7 @@ export const reorderPlans = async (req: Request, res: Response) => {
       message: 'Orden de planes actualizado'
     });
   } catch (error) {
-    console.error('Error reordering plans:', error);
+    logger.error('Error reordering plans:', error);
     return res.status(500).json({ success: false, error: 'Error al reordenar planes' });
   }
 };
@@ -511,20 +530,30 @@ export const getStatistics = async (req: Request, res: Response) => {
       _count: { id: true }
     });
 
-    // Get subscription revenue (simplified - would need actual payment data)
-    const activeSubscriptions = await prisma.subscription.findMany({
-      where: { status: 'ACTIVE' },
-      include: { plan: true }
+    // Get subscription revenue from ACTUAL PAYMENTS (not plan prices)
+    const completedPayments = await prisma.payment.aggregate({
+      where: {
+        status: 'COMPLETED',
+        type: 'SUBSCRIPTION',
+        paidAt: {
+          gte: start,
+          lte: end
+        }
+      },
+      _sum: {
+        amount: true
+      },
+      _count: {
+        id: true
+      }
     });
 
-    let monthlyRevenue = 0;
-    for (const sub of activeSubscriptions) {
-      if (sub.billingPeriod === 'MONTHLY') {
-        monthlyRevenue += Number(sub.plan.monthlyPrice);
-      } else {
-        monthlyRevenue += Number(sub.plan.annualPrice) / 12;
-      }
-    }
+    // Calculate total revenue from completed payments in the period
+    const totalRevenue = Number(completedPayments._sum.amount || 0);
+
+    // Calculate estimated monthly revenue based on actual completed payments
+    const monthsDiff = Math.max(1, (end.getTime() - start.getTime()) / (30 * 24 * 60 * 60 * 1000));
+    const estimatedMonthlyRevenue = totalRevenue / monthsDiff;
 
     return res.json({
       success: true,
@@ -543,12 +572,14 @@ export const getStatistics = async (req: Request, res: Response) => {
           newInPeriod: newProfessionalsByDate.length
         },
         revenue: {
-          estimatedMonthly: monthlyRevenue
+          totalInPeriod: totalRevenue,
+          estimatedMonthly: estimatedMonthlyRevenue,
+          paymentCount: completedPayments._count.id
         }
       }
     });
   } catch (error) {
-    console.error('Error getting statistics:', error);
+    logger.error('Error getting statistics:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener estadísticas' });
   }
 };
@@ -577,7 +608,7 @@ export const getSettings = async (req: Request, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting settings:', error);
+    logger.error('Error getting settings:', error);
     return res.status(500).json({ success: false, error: 'Error al obtener configuración' });
   }
 };
@@ -605,7 +636,7 @@ export const updateSettings = async (req: Request, res: Response) => {
       message: 'Configuración actualizada correctamente'
     });
   } catch (error) {
-    console.error('Error updating settings:', error);
+    logger.error('Error updating settings:', error);
     return res.status(500).json({ success: false, error: 'Error al actualizar configuración' });
   }
 };

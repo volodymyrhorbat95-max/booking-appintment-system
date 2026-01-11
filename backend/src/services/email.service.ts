@@ -1,5 +1,7 @@
 import { Resend } from 'resend';
 import prisma from '../config/database';
+import { logger, ServiceLogger } from '../utils/logger';
+import { decrypt } from '../utils/encryption';
 
 // Initialize Resend client
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
@@ -186,7 +188,7 @@ interface SendEmailParams {
 export async function sendEmail({ to, subject, html }: SendEmailParams): Promise<boolean> {
   try {
     if (!resend) {
-      console.log('Email service not configured (RESEND_API_KEY missing). Skipping email.');
+      logger.info('Email service not configured (RESEND_API_KEY missing). Skipping email.');
       return true; // Return true to not block the flow
     }
 
@@ -197,10 +199,10 @@ export async function sendEmail({ to, subject, html }: SendEmailParams): Promise
       html
     });
 
-    console.log(`Email sent to ${to}: ${subject}`);
+    logger.info(`Email sent to ${to}: ${subject}`);
     return true;
   } catch (error) {
-    console.error('Error sending email:', error);
+    logger.error('Error sending email', { error });
     return false;
   }
 }
@@ -225,9 +227,12 @@ export async function sendBookingConfirmationEmail({ appointmentId }: BookingCon
     });
 
     if (!appointment) {
-      console.error('Appointment not found:', appointmentId);
+      logger.error('Appointment not found', { appointmentId });
       return false;
     }
+
+    // SECURITY FIX: Decrypt patient email before sending
+    const decryptedEmail = decrypt(appointment.patient.email);
 
     // Prepare variables
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -242,12 +247,12 @@ export async function sendBookingConfirmationEmail({ appointmentId }: BookingCon
 
     // Send email
     return await sendEmail({
-      to: appointment.patient.email,
+      to: decryptedEmail,
       subject: `Confirmacion de cita - ${variables.date}`,
       html: getBookingConfirmationHTML(variables)
     });
   } catch (error) {
-    console.error('Error sending booking confirmation email:', error);
+    logger.error('Error sending booking confirmation email', { error, appointmentId });
     return false;
   }
 }
@@ -272,15 +277,18 @@ export async function sendReminderEmail({ appointmentId }: SendReminderEmailPara
     });
 
     if (!appointment) {
-      console.error('Appointment not found:', appointmentId);
+      logger.error('Appointment not found', { appointmentId });
       return false;
     }
 
     // Don't send reminders for cancelled/completed appointments
     if (appointment.status === 'CANCELLED' || appointment.status === 'COMPLETED' || appointment.status === 'NO_SHOW') {
-      console.log('Skipping reminder email for non-active appointment:', appointmentId);
+      logger.info('Skipping reminder email for non-active appointment:', appointmentId);
       return true;
     }
+
+    // SECURITY FIX: Decrypt patient email before sending
+    const decryptedEmail = decrypt(appointment.patient.email);
 
     // Prepare variables
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -295,12 +303,12 @@ export async function sendReminderEmail({ appointmentId }: SendReminderEmailPara
 
     // Send email
     return await sendEmail({
-      to: appointment.patient.email,
+      to: decryptedEmail,
       subject: `Recordatorio de cita - ${variables.date}`,
       html: getReminderHTML(variables)
     });
   } catch (error) {
-    console.error('Error sending reminder email:', error);
+    logger.error('Error sending reminder email', { error, appointmentId });
     return false;
   }
 }
@@ -325,9 +333,12 @@ export async function sendCancellationEmail({ appointmentId }: SendCancellationE
     });
 
     if (!appointment) {
-      console.error('Appointment not found:', appointmentId);
+      logger.error('Appointment not found', { appointmentId });
       return false;
     }
+
+    // SECURITY FIX: Decrypt patient email before sending
+    const decryptedEmail = decrypt(appointment.patient.email);
 
     // Prepare variables
     const variables: EmailVariables = {
@@ -340,12 +351,12 @@ export async function sendCancellationEmail({ appointmentId }: SendCancellationE
 
     // Send email
     return await sendEmail({
-      to: appointment.patient.email,
+      to: decryptedEmail,
       subject: `Cita cancelada - ${variables.booking_reference}`,
       html: getCancellationHTML(variables)
     });
   } catch (error) {
-    console.error('Error sending cancellation email:', error);
+    logger.error('Error sending cancellation email', { error, appointmentId });
     return false;
   }
 }

@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import {
   createSubscriptionPreference,
@@ -16,7 +17,7 @@ export async function getPlans(req: Request, res: Response) {
     const plans = await getAvailablePlans();
     res.json({ success: true, plans });
   } catch (error) {
-    console.error('Error fetching plans:', error);
+    logger.error('Error fetching plans:', error);
     res.status(500).json({ success: false, error: 'Error al obtener planes' });
   }
 }
@@ -27,16 +28,27 @@ export async function getPlans(req: Request, res: Response) {
 
 export async function getMySubscription(req: Request, res: Response) {
   try {
-    const professionalId = req.user?.id;
+    // SECURITY FIX: req.user?.id is userId, not professionalId
+    const userId = req.user?.id;
 
-    if (!professionalId) {
+    if (!userId) {
       return res.status(401).json({ success: false, error: 'No autorizado' });
     }
 
-    const subscription = await getSubscriptionStatus(professionalId);
+    // Get professional record from userId
+    const professional = await prisma.professional.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!professional) {
+      return res.status(404).json({ success: false, error: 'Profesional no encontrado' });
+    }
+
+    const subscription = await getSubscriptionStatus(professional.id);
     res.json({ success: true, subscription });
   } catch (error) {
-    console.error('Error fetching subscription:', error);
+    logger.error('Error fetching subscription:', error);
     res.status(500).json({ success: false, error: 'Error al obtener suscripción' });
   }
 }
@@ -47,10 +59,11 @@ export async function getMySubscription(req: Request, res: Response) {
 
 export async function createSubscriptionPayment(req: Request, res: Response) {
   try {
-    const professionalId = req.user?.id;
+    // SECURITY FIX: req.user?.id is userId, not professionalId
+    const userId = req.user?.id;
     const { planId, billingPeriod } = req.body;
 
-    if (!professionalId) {
+    if (!userId) {
       return res.status(401).json({ success: false, error: 'No autorizado' });
     }
 
@@ -68,10 +81,10 @@ export async function createSubscriptionPayment(req: Request, res: Response) {
       });
     }
 
-    // Get professional info for payment
+    // Get professional info for payment (lookup by userId first)
     const professional = await prisma.professional.findUnique({
-      where: { id: professionalId },
-      select: { firstName: true, lastName: true, user: { select: { email: true } } }
+      where: { userId },
+      select: { id: true, firstName: true, lastName: true, user: { select: { email: true } } }
     });
 
     if (!professional) {
@@ -79,7 +92,7 @@ export async function createSubscriptionPayment(req: Request, res: Response) {
     }
 
     const preference = await createSubscriptionPreference({
-      professionalId,
+      professionalId: professional.id,
       planId,
       billingPeriod,
       email: professional.user.email,
@@ -88,7 +101,7 @@ export async function createSubscriptionPayment(req: Request, res: Response) {
 
     res.json({ success: true, preference });
   } catch (error: any) {
-    console.error('Error creating subscription payment:', error);
+    logger.error('Error creating subscription payment:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Error al crear pago de suscripción'
@@ -102,16 +115,27 @@ export async function createSubscriptionPayment(req: Request, res: Response) {
 
 export async function cancelMySubscription(req: Request, res: Response) {
   try {
-    const professionalId = req.user?.id;
+    // SECURITY FIX: req.user?.id is userId, not professionalId
+    const userId = req.user?.id;
 
-    if (!professionalId) {
+    if (!userId) {
       return res.status(401).json({ success: false, error: 'No autorizado' });
     }
 
-    const result = await cancelSubscription(professionalId);
+    // Get professional record from userId
+    const professional = await prisma.professional.findUnique({
+      where: { userId },
+      select: { id: true }
+    });
+
+    if (!professional) {
+      return res.status(404).json({ success: false, error: 'Profesional no encontrado' });
+    }
+
+    const result = await cancelSubscription(professional.id);
     res.json(result);
   } catch (error: any) {
-    console.error('Error cancelling subscription:', error);
+    logger.error('Error cancelling subscription:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Error al cancelar suscripción'
@@ -125,10 +149,11 @@ export async function cancelMySubscription(req: Request, res: Response) {
 
 export async function changePlan(req: Request, res: Response) {
   try {
-    const professionalId = req.user?.id;
+    // SECURITY FIX: req.user?.id is userId, not professionalId
+    const userId = req.user?.id;
     const { planId, billingPeriod } = req.body;
 
-    if (!professionalId) {
+    if (!userId) {
       return res.status(401).json({ success: false, error: 'No autorizado' });
     }
 
@@ -142,8 +167,8 @@ export async function changePlan(req: Request, res: Response) {
     // For now, changing plan means creating a new payment preference
     // The subscription will be updated when payment is confirmed via webhook
     const professional = await prisma.professional.findUnique({
-      where: { id: professionalId },
-      select: { firstName: true, lastName: true, user: { select: { email: true } } }
+      where: { userId },
+      select: { id: true, firstName: true, lastName: true, user: { select: { email: true } } }
     });
 
     if (!professional) {
@@ -151,7 +176,7 @@ export async function changePlan(req: Request, res: Response) {
     }
 
     const preference = await createSubscriptionPreference({
-      professionalId,
+      professionalId: professional.id,
       planId,
       billingPeriod,
       email: professional.user.email,
@@ -160,7 +185,7 @@ export async function changePlan(req: Request, res: Response) {
 
     res.json({ success: true, preference });
   } catch (error: any) {
-    console.error('Error changing plan:', error);
+    logger.error('Error changing plan:', error);
     res.status(500).json({
       success: false,
       error: error.message || 'Error al cambiar plan'

@@ -1,4 +1,5 @@
 import type { Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import type { AuthRequest } from '../middlewares/auth.middleware';
 
@@ -45,7 +46,7 @@ export const getDepositSettings = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting deposit settings:', error);
+    logger.error('Error getting deposit settings:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener configuración de depósito'
@@ -138,7 +139,7 @@ export const updateDepositSettings = async (req: AuthRequest, res: Response) => 
       }
     });
   } catch (error) {
-    console.error('Error updating deposit settings:', error);
+    logger.error('Error updating deposit settings:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al actualizar configuración de depósito'

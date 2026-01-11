@@ -1,7 +1,9 @@
 import type { Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import type { Prisma } from '@prisma/client';
 import type { AuthRequest } from '../middlewares/auth.middleware';
+import { emitToProfessional, WebSocketEvent } from '../config/socket.config';
 
 // ============================================
 // AVAILABILITY MANAGEMENT
@@ -68,7 +70,7 @@ export const getAvailability = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error getting availability:', error);
+    logger.error('Error getting availability:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener disponibilidad'
@@ -231,6 +233,13 @@ export const saveAvailability = async (req: AuthRequest, res: Response) => {
       where: { professionalId: professional.id }
     });
 
+    // Emit real-time update to professional's dashboard
+    emitToProfessional(professional.id, WebSocketEvent.AVAILABILITY_UPDATED, {
+      professionalId: professional.id,
+      availabilities: updatedAvailabilities,
+      appointmentDuration: settings?.appointmentDuration || 30
+    });
+
     return res.json({
       success: true,
       message: 'Disponibilidad guardada correctamente',
@@ -240,7 +249,7 @@ export const saveAvailability = async (req: AuthRequest, res: Response) => {
       }
     });
   } catch (error) {
-    console.error('Error saving availability:', error);
+    logger.error('Error saving availability:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al guardar disponibilidad'
@@ -288,7 +297,7 @@ export const deleteAvailabilitySlot = async (req: AuthRequest, res: Response) =>
       message: 'Slot de disponibilidad eliminado'
     });
   } catch (error) {
-    console.error('Error deleting availability slot:', error);
+    logger.error('Error deleting availability slot:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al eliminar slot de disponibilidad'

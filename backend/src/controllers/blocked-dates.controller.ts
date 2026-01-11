@@ -1,6 +1,8 @@
 import type { Response } from 'express';
+import { logger } from '../utils/logger';
 import prisma from '../config/database';
 import type { AuthRequest } from '../middlewares/auth.middleware';
+import { emitToProfessional, WebSocketEvent } from '../config/socket.config';
 
 // ============================================
 // BLOCKED DATES MANAGEMENT
@@ -47,7 +49,7 @@ export const getBlockedDates = async (req: AuthRequest, res: Response) => {
       data: blockedDates
     });
   } catch (error) {
-    console.error('Error getting blocked dates:', error);
+    logger.error('Error getting blocked dates:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al obtener fechas bloqueadas'
@@ -134,13 +136,19 @@ export const addBlockedDate = async (req: AuthRequest, res: Response) => {
       }
     });
 
+    // Emit real-time update to professional's dashboard
+    emitToProfessional(professional.id, WebSocketEvent.BLOCKED_DATE_ADDED, {
+      professionalId: professional.id,
+      blockedDate: newBlockedDate
+    });
+
     return res.status(201).json({
       success: true,
       message: 'Fecha bloqueada correctamente',
       data: newBlockedDate
     });
   } catch (error) {
-    console.error('Error adding blocked date:', error);
+    logger.error('Error adding blocked date:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al bloquear fecha'
@@ -205,12 +213,19 @@ export const removeBlockedDate = async (req: AuthRequest, res: Response) => {
       where: { id }
     });
 
+    // Emit real-time update to professional's dashboard
+    emitToProfessional(professional.id, WebSocketEvent.BLOCKED_DATE_REMOVED, {
+      professionalId: professional.id,
+      blockedDateId: id,
+      date: blockedDate.date
+    });
+
     return res.json({
       success: true,
       message: 'Fecha desbloqueada correctamente'
     });
   } catch (error) {
-    console.error('Error removing blocked date:', error);
+    logger.error('Error removing blocked date:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al desbloquear fecha'
@@ -325,7 +340,7 @@ export const addBlockedDateRange = async (req: AuthRequest, res: Response) => {
       data: { blockedCount: newDates.length, skippedCount: dates.length - newDates.length }
     });
   } catch (error) {
-    console.error('Error adding blocked date range:', error);
+    logger.error('Error adding blocked date range:', error);
     return res.status(500).json({
       success: false,
       error: 'Error al bloquear fechas'
