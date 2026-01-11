@@ -2,9 +2,11 @@ import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './store';
 import { getCurrentUser } from './store/slices/authSlice';
 import AppRoutes from './routes';
+import { WebSocketProvider } from './contexts/WebSocketContext';
 
 // RULE: All API calls go through Redux, NO direct calls from components
 // App.tsx handles initial auth check when app loads
+// WebSocket provides real-time updates for appointments, availability, and platform stats
 
 function App() {
   const dispatch = useAppDispatch();
@@ -17,7 +19,11 @@ function App() {
     }
   }, [dispatch, token, isAuthenticated]);
 
-  return <AppRoutes />;
+  return (
+    <WebSocketProvider>
+      <AppRoutes />
+    </WebSocketProvider>
+  );
 }
 
 export default App;

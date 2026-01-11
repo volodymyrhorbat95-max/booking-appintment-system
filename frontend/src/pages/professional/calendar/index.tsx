@@ -18,11 +18,13 @@ import AppointmentFilters from './AppointmentFilters';
 import AppointmentsList from './AppointmentsList';
 import AppointmentDetailModal from './AppointmentDetailModal';
 import CancelAppointmentModal from './CancelAppointmentModal';
+import { useWebSocketSync } from '../../../hooks/useWebSocketSync';
 
 // RULE: Page folder structure - index.tsx + flat components (NO subdirectories)
 // RULE: Page load → dispatch action → API call → state updates → component renders
 // RULE: NO direct API calls from component
 // RULE: Global loading spinner during requests
+// RULE: WebSocket for real-time updates
 
 // View modes
 type ViewMode = 'dashboard' | 'list';
@@ -40,6 +42,9 @@ const ProfessionalCalendarPage = () => {
     error,
     successMessage
   } = useAppSelector((state) => state.professionalAppointments);
+
+  // WebSocket real-time updates
+  useWebSocketSync();
 
   // Local state
   const [viewMode, setViewMode] = useState<ViewMode>('dashboard');

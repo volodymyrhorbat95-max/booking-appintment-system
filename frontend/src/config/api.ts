@@ -1,12 +1,13 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import { ENV } from './env';
 
 // ============================================
 // AXIOS API CONFIGURATION
 // Section 12.1: Speed - Request timeout and retry logic
 // ============================================
 
-// API URL from environment variable (RULE: no hardcoded values)
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// API URL from validated environment configuration (RULE: no hardcoded values)
+const API_URL = ENV.apiUrl;
 
 // ============================================
 // CONFIGURATION CONSTANTS

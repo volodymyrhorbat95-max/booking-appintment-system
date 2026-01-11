@@ -279,6 +279,72 @@ const professionalAppointmentsSlice = createSlice({
     },
     clearFilters: (state) => {
       state.filters = { status: '', startDate: '', endDate: '' };
+    },
+    // WebSocket real-time updates
+    handleAppointmentCreated: (state, action: PayloadAction<any>) => {
+      // Refresh summary counts
+      if (state.summary) {
+        if (action.payload.status === 'PENDING' || action.payload.status === 'PENDING_PAYMENT') {
+          state.summary.pending += 1;
+        }
+      }
+      // Add to today's appointments if it's today
+      const today = new Date().toISOString().split('T')[0];
+      if (action.payload.date === today) {
+        state.todayAppointments.unshift({
+          id: action.payload.appointmentId,
+          bookingReference: action.payload.bookingReference,
+          time: action.payload.startTime,
+          patientName: action.payload.patientName,
+          status: action.payload.status
+        });
+        if (state.summary) {
+          state.summary.today += 1;
+        }
+      }
+      // Trigger refetch by clearing lastFetched
+      state.lastFetched = null;
+    },
+    handleAppointmentCancelled: (state, action: PayloadAction<any>) => {
+      // Update in list
+      const index = state.appointments.findIndex(apt => apt.id === action.payload.appointmentId);
+      if (index !== -1) {
+        state.appointments[index].status = 'CANCELLED';
+      }
+      // Update today's list
+      const todayIndex = state.todayAppointments.findIndex(apt => apt.id === action.payload.appointmentId);
+      if (todayIndex !== -1) {
+        state.todayAppointments[todayIndex].status = 'CANCELLED';
+      }
+      // Update summary
+      if (state.summary) {
+        state.summary.pending = Math.max(0, state.summary.pending - 1);
+      }
+    },
+    handleAppointmentStatusChanged: (state, action: PayloadAction<any>) => {
+      // Update in list
+      const index = state.appointments.findIndex(apt => apt.id === action.payload.appointmentId);
+      if (index !== -1) {
+        const oldStatus = state.appointments[index].status;
+        state.appointments[index].status = action.payload.status;
+
+        // Update summary counts
+        if (state.summary) {
+          if (['PENDING', 'PENDING_PAYMENT', 'REMINDER_SENT'].includes(oldStatus)) {
+            state.summary.pending = Math.max(0, state.summary.pending - 1);
+          } else if (oldStatus === 'CONFIRMED') {
+            state.summary.confirmed = Math.max(0, state.summary.confirmed - 1);
+          }
+          if (action.payload.status === 'CONFIRMED') {
+            state.summary.confirmed += 1;
+          }
+        }
+      }
+      // Update today's list
+      const todayIndex = state.todayAppointments.findIndex(apt => apt.id === action.payload.appointmentId);
+      if (todayIndex !== -1) {
+        state.todayAppointments[todayIndex].status = action.payload.status;
+      }
     }
   },
   extraReducers: (builder) => {
@@ -386,7 +452,10 @@ export const {
   clearSuccessMessage,
   clearSelectedAppointment,
   setFilters,
-  clearFilters
+  clearFilters,
+  handleAppointmentCreated,
+  handleAppointmentCancelled,
+  handleAppointmentStatusChanged
 } = professionalAppointmentsSlice.actions;
 
 export default professionalAppointmentsSlice.reducer;

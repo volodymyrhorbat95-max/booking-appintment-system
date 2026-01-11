@@ -149,6 +149,11 @@ const BookingPage = () => {
     // Extract fixed fields and custom fields
     const { countryCode, ...restFormData } = formData;
 
+    // Filter out fixed fields from custom fields (only send actual custom fields)
+    const actualCustomFields = Object.fromEntries(
+      Object.entries(restFormData).filter(([key]) => !key.startsWith('fixed-'))
+    );
+
     await dispatch(
       createAppointment({
         slug,
@@ -160,7 +165,7 @@ const BookingPage = () => {
         date: selectedDate,
         time: selectedTime,
         sessionId, // Include sessionId for slot hold validation (Requirement 10.1)
-        customFieldValues: restFormData
+        customFieldValues: actualCustomFields
       })
     );
   };

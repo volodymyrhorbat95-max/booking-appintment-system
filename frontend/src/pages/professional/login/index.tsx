@@ -3,14 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { professionalGoogleLogin, clearError } from '../../../store/slices/authSlice';
 import { UserRole } from '../../../types';
+import { ENV } from '../../../config/env';
 
 // RULE: Page folder structure - index.tsx + flat components (NO subdirectories)
 // RULE: Form submit → dispatch Redux action → API call → response updates state
 // RULE: NO direct API calls from component
 // RULE: Global loading spinner used (not individual spinner)
 
-// Google Client ID from environment variable
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
+// Google Client ID from validated environment configuration (RULE: no hardcoded values)
+const GOOGLE_CLIENT_ID = ENV.googleClientId;
 
 // Declare global google type
 declare global {

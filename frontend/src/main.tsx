@@ -6,6 +6,10 @@ import { store } from './store';
 import App from './App';
 import './index.css';
 
+// CRITICAL: Validate environment variables before app starts
+// This import triggers validation and will throw clear errors if config is missing
+import './config/env';
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
