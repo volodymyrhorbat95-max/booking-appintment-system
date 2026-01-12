@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { TextField, Select, MenuItem, FormControl, InputLabel, Button, FormHelperText } from '@mui/material';
 import type { BookingFormField } from '../../../types';
 import CountryCodeSelector from './CountryCodeSelector';
 
@@ -112,28 +113,31 @@ const BookingForm = ({
     if (field.id === 'fixed-whatsappNumber') {
       return (
         <div>
-          <label className="block text-sm sm:text-base font-medium text-gray-700">
+          <label className="block text-sm sm:text-base font-medium text-gray-700 mb-1">
             {field.fieldName}
             {field.isRequired && <span className="text-red-500 ml-1">*</span>}
           </label>
-          <div className="mt-1 flex">
+          <div className="flex">
             <CountryCodeSelector
               value={countryCode}
               onChange={setCountryCode}
             />
-            <input
+            <TextField
               type="tel"
               value={value}
               onChange={(e) => handleInputChange(field.id, e.target.value)}
               placeholder="Número sin código de país"
-              className={`
-                flex-1 rounded-r-lg border px-3 py-3 sm:py-2.5 text-base sm:text-sm touch-target-responsive
-                ${error ? 'border-red-500' : 'border-gray-300'}
-                focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
-              `}
+              error={!!error}
+              helperText={error}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderTopLeftRadius: 0,
+                  borderBottomLeftRadius: 0,
+                }
+              }}
             />
           </div>
-          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
         </div>
       );
     }
@@ -141,75 +145,55 @@ const BookingForm = ({
     // Regular text input
     if (field.fieldType === 'TEXT' || field.fieldType === 'NUMBER') {
       return (
-        <div>
-          <label className="block text-sm sm:text-base font-medium text-gray-700">
-            {field.fieldName}
-            {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-          </label>
-          <input
-            type={field.fieldType === 'NUMBER' ? 'number' : field.id === 'fixed-email' ? 'email' : 'text'}
-            value={value}
-            onChange={(e) => handleInputChange(field.id, e.target.value)}
-            className={`
-              mt-1 block w-full rounded-lg border px-3 py-3 sm:py-2.5 text-base sm:text-sm touch-target-responsive
-              ${error ? 'border-red-500' : 'border-gray-300'}
-              focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
-            `}
-          />
-          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
+        <TextField
+          type={field.fieldType === 'NUMBER' ? 'number' : field.id === 'fixed-email' ? 'email' : 'text'}
+          label={field.fieldName}
+          value={value}
+          onChange={(e) => handleInputChange(field.id, e.target.value)}
+          error={!!error}
+          helperText={error}
+          required={field.isRequired}
+          fullWidth
+        />
       );
     }
 
     // Date input
     if (field.fieldType === 'DATE') {
       return (
-        <div>
-          <label className="block text-sm sm:text-base font-medium text-gray-700">
-            {field.fieldName}
-            {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-          </label>
-          <input
-            type="date"
-            value={value}
-            onChange={(e) => handleInputChange(field.id, e.target.value)}
-            className={`
-              mt-1 block w-full rounded-lg border px-3 py-3 sm:py-2.5 text-base sm:text-sm touch-target-responsive
-              ${error ? 'border-red-500' : 'border-gray-300'}
-              focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
-            `}
-          />
-          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
+        <TextField
+          type="date"
+          label={field.fieldName}
+          value={value}
+          onChange={(e) => handleInputChange(field.id, e.target.value)}
+          error={!!error}
+          helperText={error}
+          required={field.isRequired}
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+        />
       );
     }
 
     // Dropdown
     if (field.fieldType === 'DROPDOWN') {
       return (
-        <div>
-          <label className="block text-sm sm:text-base font-medium text-gray-700">
-            {field.fieldName}
-            {field.isRequired && <span className="text-red-500 ml-1">*</span>}
-          </label>
-          <select
+        <FormControl fullWidth error={!!error} required={field.isRequired}>
+          <InputLabel>{field.fieldName}</InputLabel>
+          <Select
             value={value}
             onChange={(e) => handleInputChange(field.id, e.target.value)}
-            className={`
-              mt-1 block w-full rounded-lg border px-3 py-3 sm:py-2.5 text-base sm:text-sm touch-target-responsive
-              ${error ? 'border-red-500' : 'border-gray-300'}
-              focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
-            `}
+            label={field.fieldName}
           >
-            <option value="">Seleccionar...</option>
+            <MenuItem value="">Seleccionar...</MenuItem>
             {field.options.map((option) => (
-              <option key={option} value={option}>
+              <MenuItem key={option} value={option}>
                 {option}
-              </option>
+              </MenuItem>
             ))}
-          </select>
-          {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
-        </div>
+          </Select>
+          {error && <FormHelperText>{error}</FormHelperText>}
+        </FormControl>
       );
     }
 
@@ -256,12 +240,18 @@ const BookingForm = ({
 
         {/* Submit button - touch-friendly with minimum height */}
         <div className="mt-6 sm:mt-8 fade-up-slow">
-          <button
+          <Button
             type="submit"
-            className="w-full rounded-lg bg-blue-600 px-4 py-3.5 sm:py-3 text-base sm:text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 touch-target no-select active:scale-[0.98] transition-transform"
+            variant="contained"
+            fullWidth
+            sx={{
+              textTransform: 'none',
+              minHeight: { xs: 56, sm: 48 },
+              fontSize: { xs: '1rem', sm: '0.875rem' }
+            }}
           >
             {depositEnabled ? 'Continuar al pago' : 'Confirmar reserva'}
-          </button>
+          </Button>
         </div>
 
         <p className="mt-4 text-center text-xs sm:text-sm text-gray-500 fade-up-slow">

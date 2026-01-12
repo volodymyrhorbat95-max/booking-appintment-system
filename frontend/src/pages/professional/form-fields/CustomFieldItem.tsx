@@ -1,3 +1,6 @@
+import { Button } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { FieldType } from '../../../types';
 
 const FIELD_TYPES = [
@@ -47,20 +50,21 @@ const CustomFieldItem = ({ field, onEdit, onDelete, animationIndex }: CustomFiel
         )}
       </div>
       <div className="flex gap-2">
-        <button
-          type="button"
+        <Button
+          size="small"
           onClick={() => onEdit(field)}
-          className="text-sm text-blue-600 hover:text-blue-500"
+          startIcon={<EditIcon />}
         >
           Editar
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="small"
+          color="error"
           onClick={() => onDelete(field.id)}
-          className="text-sm text-red-600 hover:text-red-500"
+          startIcon={<DeleteIcon />}
         >
           Eliminar
-        </button>
+        </Button>
       </div>
     </div>
   );

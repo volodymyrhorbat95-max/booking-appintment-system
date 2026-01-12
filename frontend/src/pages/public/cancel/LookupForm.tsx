@@ -1,3 +1,5 @@
+import { TextField, Button } from '@mui/material';
+
 interface LookupFormProps {
   reference: string;
   email: string;
@@ -44,14 +46,22 @@ const LookupForm = ({
       <form onSubmit={onSubmit} className="rounded-lg bg-white p-6 shadow-sm fade-up-normal">
         <div className="space-y-4">
           <div className="fade-right-fast">
-            <label className="block text-sm font-medium text-gray-700">Código de reserva</label>
-            <input
-              type="text"
+            <TextField
+              label="Código de reserva"
               value={reference}
               onChange={(e) => onReferenceChange(e.target.value.toUpperCase())}
               placeholder="ABC123"
-              maxLength={6}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-lg font-mono uppercase tracking-widest focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              inputProps={{ maxLength: 6 }}
+              fullWidth
+              sx={{
+                '& input': {
+                  textAlign: 'center',
+                  fontSize: '1.125rem',
+                  fontFamily: 'monospace',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.1em',
+                },
+              }}
             />
             <p className="mt-1 text-xs text-gray-500">
               El código de 6 caracteres que recibiste por WhatsApp o email
@@ -59,35 +69,43 @@ const LookupForm = ({
           </div>
 
           <div className="fade-left-fast">
-            <label className="block text-sm font-medium text-gray-700">Email</label>
-            <input
+            <TextField
               type="email"
+              label="Email"
               value={email}
               onChange={(e) => onEmailChange(e.target.value)}
               placeholder="tu@email.com"
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              fullWidth
             />
             <p className="mt-1 text-xs text-gray-500">El email con el que hiciste la reserva</p>
           </div>
 
-          <button
+          <Button
             type="submit"
-            className="w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-medium text-white hover:bg-blue-500 fade-up-normal"
+            variant="contained"
+            fullWidth
+            sx={{
+              textTransform: 'none',
+              minHeight: 48,
+            }}
+            className="fade-up-normal"
           >
             Buscar reserva
-          </button>
+          </Button>
         </div>
       </form>
 
       {/* Back to home */}
       <div className="mt-6 text-center fade-up-slow">
-        <button
-          type="button"
+        <Button
           onClick={onGoHome}
-          className="text-sm text-blue-600 hover:text-blue-500"
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.875rem',
+          }}
         >
           Volver al inicio
-        </button>
+        </Button>
       </div>
     </div>
   );

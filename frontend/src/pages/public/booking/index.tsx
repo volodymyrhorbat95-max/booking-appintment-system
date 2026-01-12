@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Button } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import {
   getBookingPageData,
@@ -184,13 +185,14 @@ const BookingPage = () => {
           <p className="mt-2 text-sm sm:text-base text-gray-600 fade-up-normal">
             El profesional que buscas no existe o no está disponible.
           </p>
-          <button
-            type="button"
+          <Button
+            variant="contained"
             onClick={() => navigate('/')}
-            className="mt-4 rounded-lg bg-blue-600 px-4 py-3 sm:py-2 text-base sm:text-sm font-medium text-white hover:bg-blue-500 zoom-in-slow touch-target no-select active:scale-95 transition-transform"
+            className="mt-4 zoom-in-slow"
+            sx={{ textTransform: 'none', minHeight: { xs: 48, sm: 40 } }}
           >
             Volver al inicio
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -203,13 +205,14 @@ const BookingPage = () => {
         <div className="text-center zoom-in-normal">
           <h1 className="text-xl sm:text-2xl font-bold text-red-600 fade-down-fast">Error</h1>
           <p className="mt-2 text-sm sm:text-base text-gray-600 fade-up-normal">{error}</p>
-          <button
-            type="button"
+          <Button
+            variant="contained"
             onClick={() => slug && dispatch(getBookingPageData(slug))}
-            className="mt-4 rounded-lg bg-blue-600 px-4 py-3 sm:py-2 text-base sm:text-sm font-medium text-white hover:bg-blue-500 zoom-in-slow touch-target no-select active:scale-95 transition-transform"
+            className="mt-4 zoom-in-slow"
+            sx={{ textTransform: 'none', minHeight: { xs: 48, sm: 40 } }}
           >
             Reintentar
-          </button>
+          </Button>
         </div>
       </div>
     );

@@ -1,5 +1,13 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Button, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import LogoutIcon from '@mui/icons-material/Logout';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import GroupIcon from '@mui/icons-material/Group';
+import DescriptionIcon from '@mui/icons-material/Description';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useAppDispatch, useAppSelector } from '../store';
 import { logout } from '../store/slices/authSlice';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
@@ -9,14 +17,14 @@ import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 interface NavItem {
   label: string;
   path: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
-  { label: 'Profesionales', path: '/admin/professionals', icon: '👥' },
-  { label: 'Planes', path: '/admin/plans', icon: '📋' },
-  { label: 'Configuración', path: '/admin/settings', icon: '⚙️' }
+  { label: 'Dashboard', path: '/admin/dashboard', icon: <DashboardIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Profesionales', path: '/admin/professionals', icon: <GroupIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Planes', path: '/admin/plans', icon: <DescriptionIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Configuración', path: '/admin/settings', icon: <SettingsIcon sx={{ fontSize: 20 }} /> }
 ];
 
 const AdminLayout = () => {
@@ -59,12 +67,13 @@ const AdminLayout = () => {
         {/* Sidebar header */}
         <div className="flex h-14 sm:h-16 items-center justify-between border-b border-slate-700 px-4">
           <span className="text-base sm:text-lg font-bold text-white">Panel Admin</span>
-          <button
+          <IconButton
             onClick={() => setIsSidebarOpen(false)}
-            className="rounded-lg p-2 text-slate-400 hover:bg-slate-800 lg:hidden touch-target no-select active:scale-95 transition-transform"
+            className="lg:hidden"
+            sx={{ color: '#94a3b8' }}
           >
-            ✕
-          </button>
+            <CloseIcon />
+          </IconButton>
         </div>
 
         {/* Navigation items */}
@@ -72,17 +81,26 @@ const AdminLayout = () => {
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
-                <button
+                <Button
                   onClick={() => handleNavigation(item.path)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 sm:py-2.5 text-left text-sm sm:text-base transition-all touch-target-responsive no-select active:scale-[0.98] ${
-                    isActivePath(item.path)
-                      ? 'bg-blue-600 text-white font-medium'
-                      : 'text-slate-300 hover:bg-slate-800'
-                  }`}
+                  fullWidth
+                  startIcon={item.icon}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    px: '12px',
+                    py: { xs: '12px', sm: '10px' },
+                    fontSize: { xs: '14px', sm: '16px' },
+                    textTransform: 'none',
+                    backgroundColor: isActivePath(item.path) ? '#2563eb' : 'transparent',
+                    color: isActivePath(item.path) ? '#ffffff' : '#cbd5e1',
+                    fontWeight: isActivePath(item.path) ? 500 : 400,
+                    '&:hover': {
+                      backgroundColor: isActivePath(item.path) ? '#1d4ed8' : '#1e293b',
+                    },
+                  }}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
+                  {item.label}
+                </Button>
               </li>
             ))}
           </ul>
@@ -90,13 +108,25 @@ const AdminLayout = () => {
 
         {/* Sidebar footer - Logout */}
         <div className="border-t border-slate-700 p-3 sm:p-4">
-          <button
+          <Button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-3 sm:py-2.5 text-left text-sm sm:text-base text-red-400 hover:bg-slate-800 touch-target-responsive no-select active:scale-[0.98] transition-transform"
+            fullWidth
+            startIcon={<LogoutIcon />}
+            sx={{
+              justifyContent: 'flex-start',
+              gap: '12px',
+              px: '12px',
+              py: { xs: '12px', sm: '10px' },
+              fontSize: { xs: '14px', sm: '16px' },
+              textTransform: 'none',
+              color: '#f87171',
+              '&:hover': {
+                backgroundColor: '#1e293b',
+              },
+            }}
           >
-            <span className="text-lg">🚪</span>
-            <span>Cerrar Sesión</span>
-          </button>
+            Cerrar Sesión
+          </Button>
         </div>
       </aside>
 
@@ -105,14 +135,13 @@ const AdminLayout = () => {
         {/* Top header */}
         <header className="flex h-14 sm:h-16 items-center justify-between border-b bg-white px-3 sm:px-4 shadow-sm">
           {/* Mobile menu button */}
-          <button
+          <IconButton
             onClick={() => setIsSidebarOpen(true)}
-            className="rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 lg:hidden touch-target no-select active:scale-95 transition-transform"
+            className="lg:hidden"
+            sx={{ color: '#4b5563' }}
           >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            <MenuIcon />
+          </IconButton>
 
           {/* Admin info */}
           <div className="flex items-center gap-1 sm:gap-2 truncate">
@@ -123,12 +152,19 @@ const AdminLayout = () => {
           </div>
 
           {/* Desktop logout button */}
-          <button
+          <Button
             onClick={handleLogout}
-            className="hidden rounded-lg px-4 py-2 text-sm text-red-600 hover:bg-red-50 lg:block"
+            startIcon={<LogoutIcon />}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              color: '#dc2626',
+              '&:hover': {
+                backgroundColor: '#fef2f2',
+              },
+            }}
           >
             Cerrar Sesión
-          </button>
+          </Button>
         </header>
 
         {/* Page content */}

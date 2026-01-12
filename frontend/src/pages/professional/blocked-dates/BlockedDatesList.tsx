@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import type { BlockedDate } from '../../../types';
 
 // Format date for display (e.g., "Lunes, 15 de Enero 2024")
@@ -42,13 +44,16 @@ const BlockedDatesList = ({ blockedDates, onRemove }: BlockedDatesListProps) => 
                   <p className="text-sm text-gray-500">{blockedDate.reason}</p>
                 )}
               </div>
-              <button
-                type="button"
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
                 onClick={() => onRemove(blockedDate.id)}
-                className="rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 zoom-out-fast"
+                startIcon={<DeleteIcon />}
+                className="zoom-out-fast"
               >
                 Desbloquear
-              </button>
+              </Button>
             </div>
           ))}
         </div>

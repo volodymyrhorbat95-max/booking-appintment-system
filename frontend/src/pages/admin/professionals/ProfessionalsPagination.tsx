@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+
 interface ProfessionalsPaginationProps {
   page: number;
   totalPages: number;
@@ -19,22 +21,46 @@ const ProfessionalsPagination = ({
         Mostrando {((page - 1) * 10) + 1} a {Math.min(page * 10, total)} de {total}
       </div>
       <div className="flex gap-2">
-        <button
-          type="button"
+        <Button
+          variant="outlined"
           onClick={() => onPageChange(Math.max(1, page - 1))}
           disabled={page === 1}
-          className="rounded-lg border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed fade-right-fast"
+          className="fade-right-fast"
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.875rem',
+            px: 2,
+            py: 0.5,
+            color: 'rgb(55, 65, 81)',
+            borderColor: 'rgb(209, 213, 219)',
+            '&:hover': {
+              bgcolor: 'rgb(249, 250, 251)',
+              borderColor: 'rgb(209, 213, 219)'
+            }
+          }}
         >
           Anterior
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="outlined"
           onClick={() => onPageChange(Math.min(totalPages, page + 1))}
           disabled={page === totalPages}
-          className="rounded-lg border border-gray-300 px-3 py-1 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed zoom-in-fast"
+          className="zoom-in-fast"
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.875rem',
+            px: 2,
+            py: 0.5,
+            color: 'rgb(55, 65, 81)',
+            borderColor: 'rgb(209, 213, 219)',
+            '&:hover': {
+              bgcolor: 'rgb(249, 250, 251)',
+              borderColor: 'rgb(209, 213, 219)'
+            }
+          }}
         >
           Siguiente
-        </button>
+        </Button>
       </div>
     </div>
   );

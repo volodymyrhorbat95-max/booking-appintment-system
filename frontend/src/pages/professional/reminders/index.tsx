@@ -1,4 +1,8 @@
 import { useState, useEffect } from 'react';
+import { Button, Select, MenuItem, FormControl, InputLabel, Checkbox, FormControlLabel } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import {
   getReminderSettings,
@@ -144,77 +148,73 @@ const RemindersPage = () => {
             <div className="flex items-center justify-between">
               <h3 className="font-medium text-gray-900">Recordatorio {index + 1}</h3>
               {localReminders.length > 1 && (
-                <button
-                  type="button"
+                <Button
+                  variant="text"
+                  color="error"
+                  size="small"
                   onClick={() => handleRemoveReminder(reminder.reminderNumber)}
-                  className="text-sm text-red-600 hover:text-red-500"
+                  startIcon={<DeleteIcon />}
                 >
                   Eliminar
-                </button>
+                </Button>
               )}
             </div>
 
             <div className="mt-4 space-y-4">
               {/* Hours before */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Enviar con anticipación de:
-                </label>
-                <select
+              <FormControl fullWidth size="small">
+                <InputLabel>Enviar con anticipación de:</InputLabel>
+                <Select
                   value={reminder.hoursBefore}
                   onChange={(e) =>
                     handleUpdateReminder(reminder.reminderNumber, 'hoursBefore', Number(e.target.value))
                   }
-                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  label="Enviar con anticipación de:"
                 >
                   {HOURS_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
+                    <MenuItem key={opt.value} value={opt.value}>
                       {opt.label}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
+                </Select>
+              </FormControl>
 
               {/* Night before option */}
-              <div className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  id={`nightBefore-${reminder.reminderNumber}`}
-                  checked={reminder.enableNightBefore}
-                  onChange={(e) =>
-                    handleUpdateReminder(reminder.reminderNumber, 'enableNightBefore', e.target.checked)
+              <div>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={reminder.enableNightBefore}
+                      onChange={(e) =>
+                        handleUpdateReminder(reminder.reminderNumber, 'enableNightBefore', e.target.checked)
+                      }
+                    />
                   }
-                  className="mt-1 h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  label={
+                    <div className="text-sm text-gray-700">
+                      <span className="font-medium">Enviar la noche anterior</span>
+                      <p className="text-gray-500">
+                        Para citas temprano en la mañana, envía el recordatorio a las 20:00 del día anterior
+                        en lugar de muy temprano en la mañana
+                      </p>
+                    </div>
+                  }
                 />
-                <label
-                  htmlFor={`nightBefore-${reminder.reminderNumber}`}
-                  className="text-sm text-gray-700"
-                >
-                  <span className="font-medium">Enviar la noche anterior</span>
-                  <p className="text-gray-500">
-                    Para citas temprano en la mañana, envía el recordatorio a las 20:00 del día anterior
-                    en lugar de muy temprano en la mañana
-                  </p>
-                </label>
               </div>
 
               {/* Active toggle */}
-              <div className="flex items-center gap-3">
-                <input
-                  type="checkbox"
-                  id={`active-${reminder.reminderNumber}`}
-                  checked={reminder.isActive}
-                  onChange={(e) =>
-                    handleUpdateReminder(reminder.reminderNumber, 'isActive', e.target.checked)
+              <div>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={reminder.isActive}
+                      onChange={(e) =>
+                        handleUpdateReminder(reminder.reminderNumber, 'isActive', e.target.checked)
+                      }
+                    />
                   }
-                  className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  label="Recordatorio activo"
                 />
-                <label
-                  htmlFor={`active-${reminder.reminderNumber}`}
-                  className="text-sm font-medium text-gray-700"
-                >
-                  Recordatorio activo
-                </label>
               </div>
             </div>
           </div>
@@ -223,32 +223,27 @@ const RemindersPage = () => {
 
       {/* Add reminder button */}
       {localReminders.length < 5 && (
-        <button
-          type="button"
+        <Button
+          variant="outlined"
           onClick={handleAddReminder}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg border-2 border-dashed border-gray-300 p-4 text-sm font-medium text-gray-600 hover:border-gray-400 hover:text-gray-700"
+          startIcon={<AddIcon />}
+          fullWidth
+          sx={{ mt: 2, borderStyle: 'dashed' }}
         >
-          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
           Agregar otro recordatorio
-        </button>
+        </Button>
       )}
 
       {/* Save button */}
       <div className="mt-6 flex justify-end">
-        <button
-          type="button"
+        <Button
+          variant="contained"
           onClick={handleSave}
           disabled={!hasChanges}
-          className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${
-            hasChanges
-              ? 'bg-blue-600 hover:bg-blue-500'
-              : 'cursor-not-allowed bg-gray-400'
-          }`}
+          startIcon={<SaveIcon />}
         >
           Guardar Configuración
-        </button>
+        </Button>
       </div>
 
       {/* Help text */}

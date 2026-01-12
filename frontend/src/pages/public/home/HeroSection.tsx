@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+
 interface HeroSectionProps {
   onStartFree: () => void;
   onAdminAccess: () => void;
@@ -16,20 +18,34 @@ const HeroSection = ({ onStartFree, onAdminAccess }: HeroSectionProps) => {
           recordatorios automáticos por WhatsApp, sincronización con Google Calendar y más.
         </p>
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            type="button"
+          <Button
+            variant="contained"
             onClick={onStartFree}
-            className="w-full sm:w-auto rounded-lg bg-blue-600 px-8 py-3 text-base font-medium text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 fade-left-fast"
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
+              textTransform: 'none',
+              px: 4,
+              py: 1.5,
+              fontSize: '1rem',
+            }}
+            className="fade-left-fast"
           >
             Comenzar Gratis
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outlined"
             onClick={onAdminAccess}
-            className="w-full sm:w-auto rounded-lg border border-gray-300 bg-white px-8 py-3 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 fade-right-fast"
+            sx={{
+              width: { xs: '100%', sm: 'auto' },
+              textTransform: 'none',
+              px: 4,
+              py: 1.5,
+              fontSize: '1rem',
+            }}
+            className="fade-right-fast"
           >
             Acceso Admin
-          </button>
+          </Button>
         </div>
       </div>
     </div>

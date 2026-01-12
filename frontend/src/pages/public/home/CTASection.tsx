@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+
 interface CTASectionProps {
   onRegister: () => void;
 }
@@ -12,13 +14,25 @@ const CTASection = ({ onRegister }: CTASectionProps) => {
         <p className="mt-4 text-lg text-blue-100 fade-up-normal">
           Únete a miles de profesionales que ya optimizaron su gestión de citas
         </p>
-        <button
-          type="button"
+        <Button
+          variant="contained"
           onClick={onRegister}
-          className="mt-8 rounded-lg bg-white px-8 py-3 text-base font-medium text-blue-600 shadow-sm hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-600 zoom-in-slow"
+          sx={{
+            mt: 4,
+            bgcolor: 'white',
+            color: 'primary.main',
+            textTransform: 'none',
+            px: 4,
+            py: 1.5,
+            fontSize: '1rem',
+            '&:hover': {
+              bgcolor: 'grey.100',
+            },
+          }}
+          className="zoom-in-slow"
         >
           Registrarse con Google
-        </button>
+        </Button>
       </div>
     </div>
   );

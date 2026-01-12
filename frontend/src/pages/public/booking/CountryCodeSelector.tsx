@@ -1,4 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
+import { TextField, Button } from '@mui/material';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 
 interface CountryCodeSelectorProps {
   value: string;
@@ -245,34 +247,48 @@ const CountryCodeSelector = ({ value, onChange }: CountryCodeSelectorProps) => {
   return (
     <div className="relative" ref={dropdownRef}>
       {/* Selector button - touch-friendly */}
-      <button
-        type="button"
+      <Button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-1 rounded-l-lg border border-r-0 border-gray-300 bg-gray-50 px-2 sm:px-3 py-3 sm:py-2.5 text-sm sm:text-base hover:bg-gray-100 touch-target-responsive no-select active:scale-95 transition-transform"
+        variant="outlined"
+        sx={{
+          minHeight: { xs: 56, sm: 56 },
+          px: { xs: 1, sm: 1.5 },
+          bgcolor: 'grey.50',
+          borderTopRightRadius: 0,
+          borderBottomRightRadius: 0,
+          borderRight: 'none',
+          fontSize: { xs: '0.875rem', sm: '1rem' },
+          textTransform: 'none',
+          '&:hover': {
+            bgcolor: 'grey.100',
+            borderRight: 'none',
+          },
+        }}
       >
         <span className="text-lg">{selectedCountry.flag}</span>
-        <span className="font-medium">{selectedCountry.code}</span>
-        <svg
-          className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-        </svg>
-      </button>
+        <span className="font-medium ml-1">{selectedCountry.code}</span>
+        <KeyboardArrowDownIcon
+          sx={{
+            ml: 0.5,
+            fontSize: 16,
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+            transition: 'transform 0.2s'
+          }}
+        />
+      </Button>
 
       {/* Dropdown - mobile-optimized */}
       {isOpen && (
         <div className="absolute left-0 top-full z-50 mt-1 w-72 sm:w-64 rounded-lg border border-gray-200 bg-white shadow-lg">
           {/* Search input - touch-friendly */}
           <div className="border-b p-2 sm:p-3">
-            <input
+            <TextField
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar país..."
-              className="w-full rounded border border-gray-300 px-3 py-2.5 sm:py-2 text-base sm:text-sm focus:border-blue-500 focus:outline-none"
+              size="small"
+              fullWidth
               autoFocus
             />
           </div>
@@ -285,18 +301,26 @@ const CountryCodeSelector = ({ value, onChange }: CountryCodeSelectorProps) => {
               </div>
             ) : (
               filteredCountries.map((country) => (
-                <button
+                <Button
                   key={`${country.code}-${country.country}`}
-                  type="button"
                   onClick={() => handleSelect(country.code)}
-                  className={`flex w-full items-center gap-2 px-3 py-3 sm:py-2.5 text-left text-sm sm:text-base hover:bg-gray-100 touch-target-responsive no-select active:bg-gray-200 ${
-                    country.code === value ? 'bg-blue-50' : ''
-                  }`}
+                  fullWidth
+                  sx={{
+                    justifyContent: 'flex-start',
+                    px: 1.5,
+                    py: { xs: 1.5, sm: 1.25 },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    textTransform: 'none',
+                    bgcolor: country.code === value ? 'primary.lighter' : 'transparent',
+                    '&:hover': {
+                      bgcolor: 'action.hover',
+                    },
+                  }}
                 >
                   <span className="text-lg">{country.flag}</span>
-                  <span className="flex-1 truncate">{country.country}</span>
+                  <span className="flex-1 truncate text-left ml-2">{country.country}</span>
                   <span className="text-gray-500 text-sm">{country.code}</span>
-                </button>
+                </Button>
               ))
             )}
           </div>

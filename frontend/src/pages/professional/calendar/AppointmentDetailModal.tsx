@@ -1,3 +1,5 @@
+import { Button, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import type { ProfessionalAppointment, AppointmentStatus } from '../../../types';
 
 // Status display configuration
@@ -34,11 +36,10 @@ const AppointmentDetailModal = ({ appointment, onClose }: AppointmentDetailModal
   const statusInfo = getStatusDisplay(appointment.status);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl zoom-in-fast">
-        <h3 className="text-lg font-semibold text-gray-900 fade-down-fast">Detalles de la cita</h3>
-
-        <dl className="mt-4 space-y-3">
+    <Dialog open={true} onClose={onClose} maxWidth="sm" fullWidth>
+      <DialogTitle>Detalles de la cita</DialogTitle>
+      <DialogContent>
+        <dl className="space-y-3">
           <div className="flex justify-between fade-right-fast">
             <dt className="text-sm text-gray-500">Código</dt>
             <dd className="text-sm font-medium text-gray-900">{appointment.bookingReference}</dd>
@@ -118,18 +119,17 @@ const AppointmentDetailModal = ({ appointment, onClose }: AppointmentDetailModal
             </>
           )}
         </dl>
-
-        <div className="mt-6 fade-up-slow">
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            Cerrar
-          </button>
-        </div>
-      </div>
-    </div>
+      </DialogContent>
+      <DialogActions>
+        <Button
+          variant="outlined"
+          onClick={onClose}
+          startIcon={<CloseIcon />}
+        >
+          Cerrar
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 

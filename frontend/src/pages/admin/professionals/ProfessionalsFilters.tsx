@@ -1,3 +1,6 @@
+import { Button, TextField, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+
 interface ProfessionalsFiltersProps {
   search: string;
   statusFilter: string;
@@ -17,32 +20,38 @@ const ProfessionalsFilters = ({
     <div className="mb-6 rounded-lg bg-white p-4 shadow-sm fade-up-fast">
       <form onSubmit={onSubmit} className="flex flex-col gap-4 sm:flex-row">
         <div className="flex-1 fade-right-fast">
-          <input
-            type="text"
+          <TextField
+            fullWidth
             value={search}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Buscar por nombre, email o slug..."
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            size="small"
           />
         </div>
         <div className="w-full sm:w-40 fade-left-fast">
-          <select
-            value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          >
-            <option value="">Todos</option>
-            <option value="active">Activos</option>
-            <option value="suspended">Suspendidos</option>
-            <option value="inactive">Inactivos</option>
-          </select>
+          <FormControl fullWidth size="small">
+            <InputLabel>Estado</InputLabel>
+            <Select
+              value={statusFilter}
+              onChange={(e) => onStatusFilterChange(e.target.value)}
+              label="Estado"
+            >
+              <MenuItem value="">Todos</MenuItem>
+              <MenuItem value="active">Activos</MenuItem>
+              <MenuItem value="suspended">Suspendidos</MenuItem>
+              <MenuItem value="inactive">Inactivos</MenuItem>
+            </Select>
+          </FormControl>
         </div>
-        <button
+        <Button
           type="submit"
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 zoom-in-fast"
+          variant="contained"
+          startIcon={<SearchIcon />}
+          className="zoom-in-fast"
+          sx={{ textTransform: 'none' }}
         >
           Buscar
-        </button>
+        </Button>
       </form>
     </div>
   );

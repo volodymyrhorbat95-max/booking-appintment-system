@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { Button } from '@mui/material';
 import type { BookingAvailabilitySlot } from '../../../types';
 
 interface DatePickerProps {
@@ -127,22 +128,38 @@ const DatePicker = ({
               const isCurrentMonth = date.getMonth() === currentMonth;
 
               return (
-                <button
+                <Button
                   key={dayIndex}
-                  type="button"
                   onClick={() => handleDateClick(date)}
                   disabled={!available}
-                  className={`
-                    aspect-square rounded-lg p-1 sm:p-2 text-sm sm:text-base font-medium transition-all touch-target-responsive no-select
-                    ${!isCurrentMonth ? 'text-gray-300' : ''}
-                    ${available && !selected ? 'text-gray-900 hover:bg-blue-50 active:scale-95' : ''}
-                    ${available && selected ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-1 sm:ring-offset-2' : ''}
-                    ${!available && isCurrentMonth ? 'text-gray-300 cursor-not-allowed' : ''}
-                    ${todayDate && !selected ? 'ring-2 ring-blue-500 ring-inset' : ''}
-                  `}
+                  variant={selected ? 'contained' : 'text'}
+                  sx={{
+                    aspectRatio: '1',
+                    minWidth: 0,
+                    p: { xs: 0.5, sm: 1 },
+                    fontSize: { xs: '0.875rem', sm: '1rem' },
+                    fontWeight: 'medium',
+                    borderRadius: '8px',
+                    color: !isCurrentMonth ? 'text.disabled' : selected ? 'white' : 'text.primary',
+                    bgcolor: selected ? 'primary.main' : 'transparent',
+                    '&:hover': {
+                      bgcolor: selected ? 'primary.dark' : 'action.hover',
+                    },
+                    '&.Mui-disabled': {
+                      color: 'text.disabled',
+                    },
+                    ...(todayDate && !selected && {
+                      border: '2px solid',
+                      borderColor: 'primary.main',
+                    }),
+                    ...(selected && {
+                      boxShadow: '0 0 0 2px',
+                      boxShadowColor: 'primary.main',
+                    }),
+                  }}
                 >
                   {date.getDate()}
-                </button>
+                </Button>
               );
             })}
           </div>

@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+
 interface StatisticsHeaderProps {
   dateRange: '3m' | '6m' | '12m';
   onDateRangeChange: (range: '3m' | '6m' | '12m') => void;
@@ -16,39 +18,24 @@ const StatisticsHeader = ({ dateRange, onDateRangeChange, error }: StatisticsHea
           </p>
         </div>
         <div className="flex gap-2 fade-left-fast">
-          <button
-            type="button"
+          <Button
+            variant={dateRange === '3m' ? 'contained' : 'outlined'}
             onClick={() => onDateRangeChange('3m')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              dateRange === '3m'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
           >
             3 meses
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={dateRange === '6m' ? 'contained' : 'outlined'}
             onClick={() => onDateRangeChange('6m')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              dateRange === '6m'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
           >
             6 meses
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant={dateRange === '12m' ? 'contained' : 'outlined'}
             onClick={() => onDateRangeChange('12m')}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              dateRange === '12m'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
           >
             12 meses
-          </button>
+          </Button>
         </div>
       </div>
 

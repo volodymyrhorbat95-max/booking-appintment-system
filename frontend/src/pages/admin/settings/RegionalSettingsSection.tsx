@@ -1,3 +1,6 @@
+import { Button, Select, MenuItem, FormControl, InputLabel, FormHelperText } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+
 const TIMEZONES = [
   { value: 'America/Argentina/Buenos_Aires', label: 'Argentina (Buenos Aires)' },
   { value: 'America/Sao_Paulo', label: 'Brasil (São Paulo)' },
@@ -234,62 +237,60 @@ const RegionalSettingsSection = ({
         <div className="space-y-4">
           {/* Default Timezone */}
           <div className="fade-left-fast">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Zona Horaria por Defecto
-            </label>
-            <select
-              value={defaultTimezone}
-              onChange={(e) => onChange('defaultTimezone', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {TIMEZONES.map((tz, index) => (
-                <option key={tz.value} value={tz.value} className={index % 2 === 0 ? 'fade-right-fast' : 'fade-left-fast'}>
-                  {tz.label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500 fade-down-fast">
-              Zona horaria utilizada por defecto para nuevos profesionales
-            </p>
+            <FormControl fullWidth size="small">
+              <InputLabel>Zona Horaria por Defecto</InputLabel>
+              <Select
+                value={defaultTimezone}
+                onChange={(e) => onChange('defaultTimezone', e.target.value)}
+                label="Zona Horaria por Defecto"
+              >
+                {TIMEZONES.map((tz) => (
+                  <MenuItem key={tz.value} value={tz.value}>
+                    {tz.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>
+                Zona horaria utilizada por defecto para nuevos profesionales
+              </FormHelperText>
+            </FormControl>
           </div>
 
           {/* Default Country Code */}
           <div className="fade-right-fast">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Código de País por Defecto
-            </label>
-            <select
-              value={defaultCountryCode}
-              onChange={(e) => onChange('defaultCountryCode', e.target.value)}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            >
-              {COUNTRY_CODES.map((cc, index) => (
-                <option key={cc.value} value={cc.value} className={index % 2 === 0 ? 'fade-left-fast' : 'fade-right-fast'}>
-                  {cc.label}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-gray-500 fade-up-fast">
-              Código de país preseleccionado en formularios de WhatsApp
-            </p>
+            <FormControl fullWidth size="small">
+              <InputLabel>Código de País por Defecto</InputLabel>
+              <Select
+                value={defaultCountryCode}
+                onChange={(e) => onChange('defaultCountryCode', e.target.value)}
+                label="Código de País por Defecto"
+              >
+                {COUNTRY_CODES.map((cc) => (
+                  <MenuItem key={cc.value} value={cc.value}>
+                    {cc.label}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>
+                Código de país preseleccionado en formularios de WhatsApp
+              </FormHelperText>
+            </FormControl>
           </div>
         </div>
       </div>
 
       {/* Save Button */}
       <div className="p-6 flex justify-end fade-up-normal">
-        <button
-          type="button"
+        <Button
+          variant="contained"
           onClick={onSave}
           disabled={!hasChanges}
-          className={`rounded-lg px-6 py-2.5 text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 zoom-in-fast ${
-            hasChanges
-              ? 'bg-blue-600 hover:bg-blue-500'
-              : 'cursor-not-allowed bg-gray-400'
-          }`}
+          startIcon={<SaveIcon />}
+          className="zoom-in-fast"
+          sx={{ textTransform: 'none' }}
         >
           Guardar Cambios
-        </button>
+        </Button>
       </div>
     </>
   );

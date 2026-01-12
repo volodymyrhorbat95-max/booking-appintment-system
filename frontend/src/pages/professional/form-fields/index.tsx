@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { Button } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import {
   getFormFields,
@@ -152,13 +154,15 @@ const FormFieldsPage = () => {
         <div className="mb-4 flex items-center justify-between fade-down-fast">
           <h2 className="text-lg font-medium text-gray-900">Campos Personalizados</h2>
           {!isAddingField && !editingField && (
-            <button
-              type="button"
+            <Button
+              variant="contained"
+              color="primary"
               onClick={() => setIsAddingField(true)}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 zoom-in-fast"
+              startIcon={<AddIcon />}
+              className="zoom-in-fast"
             >
-              + Agregar Campo
-            </button>
+              Agregar Campo
+            </Button>
           )}
         </div>
 

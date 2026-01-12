@@ -1,3 +1,7 @@
+import { Button, ButtonGroup } from '@mui/material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ListIcon from '@mui/icons-material/List';
+
 type ViewMode = 'dashboard' | 'list';
 
 interface CalendarHeaderProps {
@@ -25,30 +29,22 @@ const CalendarHeader = ({
         </div>
 
         {/* View toggle */}
-        <div className="flex rounded-lg bg-gray-100 p-1 zoom-in-normal">
-          <button
-            type="button"
+        <ButtonGroup variant="contained" className="zoom-in-normal">
+          <Button
             onClick={() => onViewModeChange('dashboard')}
-            className={`rounded-md px-4 py-2 text-sm font-medium ${
-              viewMode === 'dashboard'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            variant={viewMode === 'dashboard' ? 'contained' : 'outlined'}
+            startIcon={<DashboardIcon />}
           >
             Resumen
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
             onClick={() => onViewModeChange('list')}
-            className={`rounded-md px-4 py-2 text-sm font-medium ${
-              viewMode === 'list'
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
+            variant={viewMode === 'list' ? 'contained' : 'outlined'}
+            startIcon={<ListIcon />}
           >
             Lista
-          </button>
-        </div>
+          </Button>
+        </ButtonGroup>
       </div>
 
       {/* Error message */}

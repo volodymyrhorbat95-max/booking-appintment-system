@@ -1,3 +1,6 @@
+import { Button } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+
 interface PlansHeaderProps {
   error: string | null;
   successMessage: string | null;
@@ -15,13 +18,15 @@ const PlansHeader = ({ error, successMessage, onNewPlan }: PlansHeaderProps) => 
             Crear y editar planes de suscripción
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="contained"
           onClick={onNewPlan}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 zoom-in-fast"
+          startIcon={<AddIcon />}
+          className="zoom-in-fast"
+          sx={{ textTransform: 'none' }}
         >
-          + Nuevo Plan
-        </button>
+          Nuevo Plan
+        </Button>
       </div>
 
       {/* Error */}

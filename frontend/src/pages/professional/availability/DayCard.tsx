@@ -1,3 +1,7 @@
+import { Checkbox, TextField, Button } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+
 export interface TimeSlot {
   slotNumber: number;
   startTime: string;
@@ -51,23 +55,23 @@ const DayCard = ({
       {/* Day header with toggle */}
       <div className="flex items-center justify-between fade-up-fast">
         <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={dayConfig.enabled}
             onChange={() => onToggleDay(dayValue)}
-            className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            color="primary"
           />
           <span className="text-base font-medium text-gray-900">{dayLabel}</span>
         </label>
 
         {dayConfig.enabled && dayConfig.slots.length < 5 && (
-          <button
-            type="button"
+          <Button
+            size="small"
             onClick={() => onAddSlot(dayValue)}
-            className="text-sm text-blue-600 hover:text-blue-500 zoom-in-fast"
+            startIcon={<AddIcon />}
+            className="zoom-in-fast"
           >
-            + Agregar horario
-          </button>
+            Agregar horario
+          </Button>
         )}
       </div>
 
@@ -85,32 +89,36 @@ const DayCard = ({
                 Horario {index + 1}:
               </span>
               <div className="flex items-center gap-2">
-                <input
+                <TextField
                   type="time"
                   value={slot.startTime}
                   onChange={(e) =>
                     onUpdateSlotTime(dayValue, slot.slotNumber, 'startTime', e.target.value)
                   }
-                  className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  size="small"
+                  InputLabelProps={{ shrink: true }}
                 />
                 <span className="text-gray-500">a</span>
-                <input
+                <TextField
                   type="time"
                   value={slot.endTime}
                   onChange={(e) =>
                     onUpdateSlotTime(dayValue, slot.slotNumber, 'endTime', e.target.value)
                   }
-                  className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  size="small"
+                  InputLabelProps={{ shrink: true }}
                 />
               </div>
               {dayConfig.slots.length > 1 && (
-                <button
-                  type="button"
+                <Button
+                  size="small"
+                  color="error"
                   onClick={() => onRemoveSlot(dayValue, slot.slotNumber)}
-                  className="text-sm text-red-600 hover:text-red-500 zoom-out-fast"
+                  startIcon={<DeleteIcon />}
+                  className="zoom-out-fast"
                 >
                   Eliminar
-                </button>
+                </Button>
               )}
             </div>
           ))}

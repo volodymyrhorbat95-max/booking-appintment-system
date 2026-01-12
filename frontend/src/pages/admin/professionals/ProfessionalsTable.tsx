@@ -1,3 +1,4 @@
+import { Button } from '@mui/material';
 import type { AdminProfessional } from '../../../types';
 
 interface ProfessionalsTableProps {
@@ -90,21 +91,39 @@ const ProfessionalsTable = ({ professionals, onSuspend, onActivate }: Profession
                     </td>
                     <td className="px-4 py-4 text-right">
                       {professional.isSuspended ? (
-                        <button
-                          type="button"
+                        <Button
                           onClick={() => onActivate(professional.id)}
-                          className="text-sm font-medium text-green-600 hover:text-green-500 zoom-in-fast"
+                          className="zoom-in-fast"
+                          sx={{
+                            textTransform: 'none',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            color: 'rgb(22, 163, 74)',
+                            '&:hover': {
+                              bgcolor: 'rgb(240, 253, 244)',
+                              color: 'rgb(21, 128, 61)'
+                            }
+                          }}
                         >
                           Activar
-                        </button>
+                        </Button>
                       ) : (
-                        <button
-                          type="button"
+                        <Button
                           onClick={() => onSuspend(professional.id, professional.fullName)}
-                          className="text-sm font-medium text-red-600 hover:text-red-500 zoom-in-fast"
+                          className="zoom-in-fast"
+                          sx={{
+                            textTransform: 'none',
+                            fontSize: '0.875rem',
+                            fontWeight: 500,
+                            color: 'rgb(220, 38, 38)',
+                            '&:hover': {
+                              bgcolor: 'rgb(254, 242, 242)',
+                              color: 'rgb(185, 28, 28)'
+                            }
+                          }}
                         >
                           Suspender
-                        </button>
+                        </Button>
                       )}
                     </td>
                   </tr>

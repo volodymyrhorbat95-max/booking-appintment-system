@@ -1,3 +1,6 @@
+import { Button, TextField } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 import type { MessageTemplateVariable } from '../../../types';
 
 interface TemplateEditFormProps {
@@ -20,20 +23,17 @@ const TemplateEditForm = ({
   return (
     <div className="space-y-4">
       <div className="fade-up-fast">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Texto del mensaje:
-        </label>
-        <textarea
+        <TextField
+          label="Texto del mensaje"
           value={editedText}
           onChange={(e) => onTextChange(e.target.value)}
+          multiline
           rows={8}
-          maxLength={1024}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          fullWidth
+          inputProps={{ maxLength: 1024 }}
           placeholder="Escribe tu mensaje personalizado..."
+          helperText={`${editedText.length}/1024 caracteres`}
         />
-        <p className="mt-1 text-xs text-gray-500 fade-right-fast">
-          {editedText.length}/1024 caracteres
-        </p>
       </div>
 
       {/* Variables */}
@@ -42,38 +42,37 @@ const TemplateEditForm = ({
           Variables disponibles (haz clic para insertar):
         </p>
         <div className="flex flex-wrap gap-2">
-          {availableVariables.map((variable, index) => (
-            <button
+          {availableVariables.map((variable) => (
+            <Button
               key={variable.key}
-              type="button"
+              variant="outlined"
+              size="small"
               onClick={() => onInsertVariable(variable.key)}
-              className={`rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-700 hover:bg-gray-200 ${
-                index % 2 === 0 ? 'fade-right-fast' : 'fade-left-fast'
-              }`}
               title={variable.description}
+              sx={{ borderRadius: '16px' }}
             >
               {variable.key}
-            </button>
+            </Button>
           ))}
         </div>
       </div>
 
       {/* Action buttons */}
       <div className="flex justify-end gap-3 fade-up-slow">
-        <button
-          type="button"
+        <Button
+          variant="outlined"
           onClick={onCancel}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 fade-left-normal"
+          startIcon={<CloseIcon />}
         >
           Cancelar
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant="contained"
           onClick={onSave}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 fade-right-normal"
+          startIcon={<SaveIcon />}
         >
           Guardar
-        </button>
+        </Button>
       </div>
     </div>
   );

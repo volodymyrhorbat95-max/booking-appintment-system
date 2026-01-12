@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
+import { Button } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { getAvailability, saveAvailability, clearError } from '../../../store/slices/availabilitySlice';
 import AvailabilityHeader from './AvailabilityHeader';
@@ -215,13 +217,15 @@ const AvailabilityPage = () => {
 
       {/* Save button */}
       <div className="mt-6 flex justify-end fade-up-normal">
-        <button
-          type="button"
+        <Button
+          variant="contained"
+          color="primary"
           onClick={handleSave}
-          className="rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 zoom-in-fast"
+          startIcon={<SaveIcon />}
+          className="zoom-in-fast"
         >
           Guardar Disponibilidad
-        </button>
+        </Button>
       </div>
 
       {/* Help Section */}

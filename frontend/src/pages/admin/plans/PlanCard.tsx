@@ -1,3 +1,8 @@
+import { Button, IconButton } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
+import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
+import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
+import CheckIcon from '@mui/icons-material/Check';
 import type { AdminPlan } from '../../../types';
 
 interface PlanCardProps {
@@ -28,36 +33,24 @@ const PlanCard = ({ plan, index, totalPlans, onEdit, onToggleActive, onDelete, o
           <div className="flex items-center gap-2">
             {/* Reorder buttons */}
             <div className="flex flex-col gap-0.5">
-              <button
-                type="button"
+              <IconButton
                 onClick={() => onMoveUp(index)}
                 disabled={isFirst}
-                className={`p-1 rounded transition-colors ${
-                  isFirst
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
+                size="small"
                 title="Mover arriba"
+                sx={{ p: 0.5 }}
               >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                </svg>
-              </button>
-              <button
-                type="button"
+                <KeyboardArrowUpIcon sx={{ fontSize: 16 }} />
+              </IconButton>
+              <IconButton
                 onClick={() => onMoveDown(index)}
                 disabled={isLast}
-                className={`p-1 rounded transition-colors ${
-                  isLast
-                    ? 'text-gray-300 cursor-not-allowed'
-                    : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                }`}
+                size="small"
                 title="Mover abajo"
+                sx={{ p: 0.5 }}
               >
-                <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
+                <KeyboardArrowDownIcon sx={{ fontSize: 16 }} />
+              </IconButton>
             </div>
             <h3 className="text-lg font-medium text-gray-900">{plan.name}</h3>
           </div>
@@ -94,9 +87,7 @@ const PlanCard = ({ plan, index, totalPlans, onEdit, onToggleActive, onDelete, o
               key={featureIndex}
               className={`flex items-start gap-2 text-sm text-gray-600 ${featureIndex % 2 === 0 ? 'fade-right-fast' : 'fade-left-fast'}`}
             >
-              <svg className="h-4 w-4 mt-0.5 text-green-500 flex-shrink-0 zoom-in-fast" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <CheckIcon sx={{ fontSize: 16, mt: 0.5, color: 'rgb(34, 197, 94)', flexShrink: 0 }} className="zoom-in-fast" />
               <span>{feature}</span>
             </li>
           ))}
@@ -112,34 +103,67 @@ const PlanCard = ({ plan, index, totalPlans, onEdit, onToggleActive, onDelete, o
           {plan.subscribersCount} suscriptor{plan.subscribersCount !== 1 ? 'es' : ''}
         </p>
         <div className="flex gap-2">
-          <button
-            type="button"
+          <Button
+            variant="outlined"
             onClick={() => onEdit(plan)}
-            className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 fade-up-fast"
+            className="fade-up-fast"
+            sx={{
+              flex: 1,
+              textTransform: 'none',
+              color: 'rgb(55, 65, 81)',
+              borderColor: 'rgb(209, 213, 219)',
+              '&:hover': {
+                bgcolor: 'rgb(249, 250, 251)',
+                borderColor: 'rgb(209, 213, 219)'
+              }
+            }}
           >
             Editar
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outlined"
             onClick={() => onToggleActive(plan)}
-            className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium fade-down-fast ${
-              plan.isActive
-                ? 'border border-yellow-300 text-yellow-700 hover:bg-yellow-50'
-                : 'border border-green-300 text-green-700 hover:bg-green-50'
-            }`}
+            className="fade-down-fast"
+            sx={{
+              flex: 1,
+              textTransform: 'none',
+              ...(plan.isActive
+                ? {
+                    color: 'rgb(161, 98, 7)',
+                    borderColor: 'rgb(253, 224, 71)',
+                    '&:hover': {
+                      bgcolor: 'rgb(254, 252, 232)',
+                      borderColor: 'rgb(253, 224, 71)'
+                    }
+                  }
+                : {
+                    color: 'rgb(21, 128, 61)',
+                    borderColor: 'rgb(134, 239, 172)',
+                    '&:hover': {
+                      bgcolor: 'rgb(240, 253, 244)',
+                      borderColor: 'rgb(134, 239, 172)'
+                    }
+                  })
+            }}
           >
             {plan.isActive ? 'Desactivar' : 'Activar'}
-          </button>
+          </Button>
           {plan.subscribersCount === 0 && (
-            <button
-              type="button"
+            <IconButton
               onClick={() => onDelete(plan)}
-              className="rounded-lg border border-red-300 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 zoom-in-fast"
+              className="zoom-in-fast"
+              sx={{
+                color: 'rgb(220, 38, 38)',
+                border: '1px solid rgb(252, 165, 165)',
+                borderRadius: 2,
+                '&:hover': {
+                  bgcolor: 'rgb(254, 242, 242)',
+                  border: '1px solid rgb(252, 165, 165)'
+                }
+              }}
             >
-              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
-            </button>
+              <DeleteIcon sx={{ fontSize: 18 }} />
+            </IconButton>
           )}
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { Outlet, useNavigate } from 'react-router-dom';
+import { Button } from '@mui/material';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 
 // Public layout for booking pages, landing page
@@ -14,12 +15,23 @@ const PublicLayout = () => {
       {/* Simple header for public pages - mobile-first */}
       <header className="bg-blue-500/80 backdrop-blur-sm shadow-sm sticky top-0 z-10">
         <div className="container-dashboard py-3 sm:py-4">
-          <button
+          <Button
             onClick={() => navigate('/')}
-            className="text-lg sm:text-xl md:text-2xl font-bold text-white hover:text-blue-100 transition-colors cursor-pointer"
+            sx={{
+              fontSize: { xs: '18px', sm: '20px', md: '24px' },
+              fontWeight: 700,
+              color: '#ffffff',
+              textTransform: 'none',
+              padding: 0,
+              minWidth: 'auto',
+              '&:hover': {
+                backgroundColor: 'transparent',
+                color: '#dbeafe',
+              },
+            }}
           >
             Reservas Online
-          </button>
+          </Button>
         </div>
       </header>
 

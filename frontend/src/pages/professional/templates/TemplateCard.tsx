@@ -1,3 +1,6 @@
+import { Button } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import RestoreIcon from '@mui/icons-material/Restore';
 import type { MessageTemplateType, MessageTemplateData, MessageTemplateVariable } from '../../../types';
 import TemplateEditForm from './TemplateEditForm';
 
@@ -74,21 +77,21 @@ const TemplateCard = ({
             {/* Action buttons */}
             <div className="mt-4 flex justify-end gap-3 fade-up-normal">
               {template.isCustom && (
-                <button
-                  type="button"
+                <Button
+                  variant="outlined"
                   onClick={() => onReset(template.type)}
-                  className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 fade-left-fast"
+                  startIcon={<RestoreIcon />}
                 >
                   Restablecer
-                </button>
+                </Button>
               )}
-              <button
-                type="button"
+              <Button
+                variant="contained"
                 onClick={() => onEdit(template)}
-                className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 fade-right-fast"
+                startIcon={<EditIcon />}
               >
                 Editar
-              </button>
+              </Button>
             </div>
           </div>
         )}

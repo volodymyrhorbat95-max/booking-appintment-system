@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 import type { CurrentSubscription } from '../../../types';
 
 interface CurrentSubscriptionCardProps {
@@ -71,9 +73,7 @@ const CurrentSubscriptionCard = ({
                     index % 2 === 0 ? 'fade-left-normal' : 'fade-right-normal'
                   }`}
                 >
-                  <svg className="h-4 w-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
+                  <CheckIcon sx={{ fontSize: 16, mt: 0.5, color: 'rgb(34, 197, 94)', flexShrink: 0 }} />
                   <span>{feature}</span>
                 </li>
               ))}
@@ -84,13 +84,13 @@ const CurrentSubscriptionCard = ({
         {/* Cancel button */}
         {subscription.status === 'ACTIVE' && (
           <div className="mt-6 pt-6 border-t border-gray-100 fade-up-slow">
-            <button
-              type="button"
+            <Button
+              variant="text"
+              color="error"
               onClick={onCancelClick}
-              className="text-sm font-medium text-red-600 hover:text-red-500"
             >
               Cancelar suscripción
-            </button>
+            </Button>
           </div>
         )}
       </div>

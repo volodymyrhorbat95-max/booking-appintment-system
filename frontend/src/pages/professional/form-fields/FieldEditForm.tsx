@@ -1,4 +1,8 @@
 import { useState } from 'react';
+import { TextField, Select, MenuItem, FormControl, InputLabel, Checkbox, FormControlLabel, Button } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 
 const FIELD_TYPES = [
   { value: 'TEXT', label: 'Texto' },
@@ -60,44 +64,42 @@ const FieldEditForm = ({
       </h3>
       <div className="space-y-4">
         <div className="fade-right-fast">
-          <label className="block text-sm font-medium text-gray-700">
-            Nombre del campo
-          </label>
-          <input
-            type="text"
+          <TextField
+            label="Nombre del campo"
             value={field.fieldName}
             onChange={(e) => onFieldChange({ ...field, fieldName: e.target.value })}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+            fullWidth
+            size="small"
             placeholder="Ej: Obra Social, Número de DNI..."
           />
         </div>
         <div className="flex flex-wrap gap-4 fade-left-fast">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Tipo de campo
-            </label>
-            <select
+          <FormControl size="small" className="min-w-[200px]">
+            <InputLabel id="field-type-label">Tipo de campo</InputLabel>
+            <Select
+              labelId="field-type-label"
               value={field.fieldType}
               onChange={(e) => onFieldChange({ ...field, fieldType: e.target.value })}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              label="Tipo de campo"
             >
               {FIELD_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>
+                <MenuItem key={type.value} value={type.value}>
                   {type.label}
-                </option>
+                </MenuItem>
               ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={field.isRequired}
-                onChange={(e) => onFieldChange({ ...field, isRequired: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-              />
-              <span className="text-sm text-gray-700">Obligatorio</span>
-            </label>
+            </Select>
+          </FormControl>
+          <div className="flex items-center">
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={field.isRequired}
+                  onChange={(e) => onFieldChange({ ...field, isRequired: e.target.checked })}
+                  color="primary"
+                />
+              }
+              label="Obligatorio"
+            />
           </div>
         </div>
 
@@ -113,52 +115,54 @@ const FieldEditForm = ({
                   <span className="flex-1 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm">
                     {option}
                   </span>
-                  <button
-                    type="button"
+                  <Button
+                    size="small"
+                    color="error"
                     onClick={() => handleRemoveOption(index)}
-                    className="text-red-600 hover:text-red-500"
                   >
                     ×
-                  </button>
+                  </Button>
                 </div>
               ))}
               <div className="flex items-center gap-2 zoom-in-fast">
-                <input
-                  type="text"
+                <TextField
                   value={newOption}
                   onChange={(e) => setNewOption(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddOption()}
-                  className="flex-1 rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  size="small"
+                  className="flex-1"
                   placeholder="Nueva opción..."
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="outlined"
+                  size="small"
                   onClick={handleAddOption}
-                  className="rounded-lg bg-gray-100 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-200"
+                  startIcon={<AddIcon />}
                 >
                   Agregar
-                </button>
+                </Button>
               </div>
             </div>
           </div>
         )}
 
         <div className="flex gap-2 fade-up-normal">
-          <button
-            type="button"
+          <Button
+            variant="contained"
+            color="primary"
             onClick={onSave}
             disabled={!isValid}
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
+            startIcon={<SaveIcon />}
           >
             {isNew ? 'Crear Campo' : 'Guardar Cambios'}
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            variant="outlined"
             onClick={onCancel}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            startIcon={<CloseIcon />}
           >
             Cancelar
-          </button>
+          </Button>
         </div>
       </div>
     </div>

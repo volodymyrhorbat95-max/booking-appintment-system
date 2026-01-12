@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Button, TextField } from '@mui/material';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import { adminLogin, clearError } from '../../../store/slices/authSlice';
 import { UserRole } from '../../../types';
@@ -103,61 +104,67 @@ const AdminLoginPage = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Email field */}
             <div>
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Correo electrónico
-              </label>
-              <input
+              <TextField
+                fullWidth
                 type="email"
                 id="email"
+                label="Correo electrónico"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="admin@ejemplo.com"
                 autoComplete="email"
+                size="small"
               />
             </div>
 
             {/* Password field */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Contraseña
-              </label>
-              <input
+              <TextField
+                fullWidth
                 type="password"
                 id="password"
+                label="Contraseña"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 placeholder="••••••••"
                 autoComplete="current-password"
+                size="small"
               />
             </div>
 
             {/* Submit button */}
-            <button
+            <Button
               type="submit"
-              className="w-full rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-medium text-white hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2"
+              fullWidth
+              variant="contained"
+              sx={{
+                bgcolor: 'rgb(15, 23, 42)',
+                '&:hover': { bgcolor: 'rgb(30, 41, 59)' },
+                textTransform: 'none',
+                py: 1.25
+              }}
             >
               Iniciar Sesión
-            </button>
+            </Button>
           </form>
         </div>
 
         {/* Footer link */}
         <p className="mt-4 text-center text-sm text-gray-600">
           ¿Eres profesional?{' '}
-          <button
+          <Button
             onClick={() => navigate('/login/professional')}
-            className="font-medium text-blue-600 hover:text-blue-500"
+            sx={{
+              textTransform: 'none',
+              fontWeight: 500,
+              fontSize: '0.875rem',
+              p: 0,
+              minWidth: 'auto',
+              '&:hover': { backgroundColor: 'transparent' }
+            }}
           >
             Ingresa aquí
-          </button>
+          </Button>
         </p>
       </div>
     </div>

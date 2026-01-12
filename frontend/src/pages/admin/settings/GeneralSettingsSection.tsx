@@ -1,3 +1,5 @@
+import { TextField } from '@mui/material';
+
 interface GeneralSettingsSectionProps {
   platformName: string;
   supportEmail: string;
@@ -16,33 +18,28 @@ const GeneralSettingsSection = ({
       <div className="space-y-4">
         {/* Platform Name */}
         <div className="fade-right-fast">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre de la Plataforma
-          </label>
-          <input
-            type="text"
+          <TextField
+            fullWidth
+            label="Nombre de la Plataforma"
             value={platformName}
             onChange={(e) => onChange('platformName', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="Mi Plataforma de Citas"
+            size="small"
           />
         </div>
 
         {/* Support Email */}
         <div className="fade-left-fast">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Email de Soporte
-          </label>
-          <input
+          <TextField
+            fullWidth
             type="email"
+            label="Email de Soporte"
             value={supportEmail}
             onChange={(e) => onChange('supportEmail', e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             placeholder="soporte@ejemplo.com"
+            size="small"
+            helperText="Este email se mostrará a los usuarios para contactar soporte"
           />
-          <p className="mt-1 text-xs text-gray-500 fade-up-normal">
-            Este email se mostrará a los usuarios para contactar soporte
-          </p>
         </div>
       </div>
     </div>

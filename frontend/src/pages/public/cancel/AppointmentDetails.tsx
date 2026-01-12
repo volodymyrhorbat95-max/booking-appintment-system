@@ -1,3 +1,4 @@
+import { Button } from '@mui/material';
 import CancelConfirmModal from './CancelConfirmModal';
 
 interface CancelBookingAppointment {
@@ -140,21 +141,32 @@ const AppointmentDetails = ({
       {/* Cancel button */}
       {appointment.canCancel ? (
         <div className="space-y-4">
-          <button
-            type="button"
+          <Button
+            variant="contained"
+            color="error"
             onClick={onShowConfirmDialog}
-            className="w-full rounded-lg bg-red-600 px-4 py-3 text-sm font-medium text-white hover:bg-red-500 fade-up-fast"
+            fullWidth
+            sx={{
+              textTransform: 'none',
+              minHeight: 48,
+            }}
+            className="fade-up-fast"
           >
             Cancelar esta cita
-          </button>
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="outlined"
             onClick={onReschedule}
-            className="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 fade-up-normal"
+            fullWidth
+            sx={{
+              textTransform: 'none',
+              minHeight: 48,
+            }}
+            className="fade-up-normal"
           >
             Reagendar cita
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="rounded-lg bg-gray-50 p-4 text-center fade-up-normal">
@@ -176,13 +188,15 @@ const AppointmentDetails = ({
 
       {/* Back link */}
       <div className="mt-6 text-center fade-up-slow">
-        <button
-          type="button"
+        <Button
           onClick={onSearchAnother}
-          className="text-sm text-blue-600 hover:text-blue-500"
+          sx={{
+            textTransform: 'none',
+            fontSize: '0.875rem',
+          }}
         >
           Buscar otra reserva
-        </button>
+        </Button>
       </div>
     </div>
   );

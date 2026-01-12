@@ -1,3 +1,4 @@
+import { Button } from '@mui/material';
 import type { TimeSlot } from '../../../types';
 
 interface TimeSlotsProps {
@@ -56,20 +57,38 @@ const TimeSlots = ({
       ) : (
         <div className="grid grid-cols-3 gap-2 sm:gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 flip-up-normal">
           {slots.map((slot) => (
-            <button
+            <Button
               key={slot.time}
-              type="button"
               onClick={() => slot.available && onTimeSelect(slot.time)}
               disabled={!slot.available}
-              className={`
-                rounded-lg px-2 sm:px-3 py-3 sm:py-2.5 text-sm sm:text-base font-medium transition-all touch-target no-select
-                ${slot.available && slot.time !== selectedTime ? 'bg-gray-100 text-gray-900 hover:bg-blue-50 hover:text-blue-600 active:scale-95' : ''}
-                ${slot.available && slot.time === selectedTime ? 'bg-blue-600 text-white ring-2 ring-blue-600 ring-offset-2' : ''}
-                ${!slot.available ? 'bg-gray-50 text-gray-300 cursor-not-allowed line-through' : ''}
-              `}
+              variant={slot.available && slot.time === selectedTime ? 'contained' : 'outlined'}
+              sx={{
+                px: { xs: 1, sm: 1.5 },
+                py: { xs: 1.5, sm: 1.25 },
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                fontWeight: 'medium',
+                textTransform: 'none',
+                minHeight: { xs: 48, sm: 40 },
+                bgcolor: slot.available && slot.time !== selectedTime ? 'grey.100' : undefined,
+                color: slot.available && slot.time !== selectedTime ? 'text.primary' : undefined,
+                borderColor: slot.available && slot.time !== selectedTime ? 'grey.300' : undefined,
+                '&:hover': {
+                  bgcolor: slot.available && slot.time !== selectedTime ? 'action.hover' : undefined,
+                  borderColor: slot.available && slot.time !== selectedTime ? 'primary.main' : undefined,
+                },
+                '&.Mui-disabled': {
+                  bgcolor: 'grey.50',
+                  color: 'text.disabled',
+                  textDecoration: 'line-through',
+                },
+                ...(slot.available && slot.time === selectedTime && {
+                  boxShadow: '0 0 0 2px',
+                  boxShadowColor: 'primary.main',
+                }),
+              }}
             >
               {slot.time}
-            </button>
+            </Button>
           ))}
         </div>
       )}

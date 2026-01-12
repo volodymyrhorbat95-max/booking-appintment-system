@@ -1,5 +1,20 @@
 import { useState } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { Button, IconButton } from '@mui/material';
+import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';
+import LogoutIcon from '@mui/icons-material/Logout';
+import PublicIcon from '@mui/icons-material/Public';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import BlockIcon from '@mui/icons-material/Block';
+import SyncIcon from '@mui/icons-material/Sync';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import DescriptionIcon from '@mui/icons-material/Description';
+import ListAltIcon from '@mui/icons-material/ListAlt';
+import PaymentIcon from '@mui/icons-material/Payment';
+import BarChartIcon from '@mui/icons-material/BarChart';
+import StarIcon from '@mui/icons-material/Star';
 import { useAppDispatch, useAppSelector } from '../store';
 import { logout } from '../store/slices/authSlice';
 import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
@@ -9,20 +24,20 @@ import GlobalLoadingSpinner from '../components/GlobalLoadingSpinner';
 interface NavItem {
   label: string;
   path: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const navItems: NavItem[] = [
-  { label: 'Calendario', path: '/professional/calendar', icon: '📅' },
-  { label: 'Disponibilidad', path: '/professional/availability', icon: '⏰' },
-  { label: 'Bloquear Fechas', path: '/professional/blocked-dates', icon: '🚫' },
-  { label: 'Google Calendar', path: '/professional/google-calendar', icon: '🔗' },
-  { label: 'Recordatorios', path: '/professional/reminders', icon: '🔔' },
-  { label: 'Plantillas', path: '/professional/templates', icon: '📝' },
-  { label: 'Formulario', path: '/professional/form-fields', icon: '📋' },
-  { label: 'Depósito', path: '/professional/deposit', icon: '💳' },
-  { label: 'Estadísticas', path: '/professional/statistics', icon: '📊' },
-  { label: 'Suscripción', path: '/professional/subscription', icon: '⭐' }
+  { label: 'Calendario', path: '/professional/calendar', icon: <CalendarMonthIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Disponibilidad', path: '/professional/availability', icon: <AccessTimeIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Bloquear Fechas', path: '/professional/blocked-dates', icon: <BlockIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Google Calendar', path: '/professional/google-calendar', icon: <SyncIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Recordatorios', path: '/professional/reminders', icon: <NotificationsIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Plantillas', path: '/professional/templates', icon: <DescriptionIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Formulario', path: '/professional/form-fields', icon: <ListAltIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Depósito', path: '/professional/deposit', icon: <PaymentIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Estadísticas', path: '/professional/statistics', icon: <BarChartIcon sx={{ fontSize: 20 }} /> },
+  { label: 'Suscripción', path: '/professional/subscription', icon: <StarIcon sx={{ fontSize: 20 }} /> }
 ];
 
 const ProfessionalLayout = () => {
@@ -65,12 +80,13 @@ const ProfessionalLayout = () => {
         {/* Sidebar header */}
         <div className="flex h-14 sm:h-16 items-center justify-between border-b px-4">
           <span className="text-base sm:text-lg font-bold text-gray-900">Panel Profesional</span>
-          <button
+          <IconButton
             onClick={() => setIsSidebarOpen(false)}
-            className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 lg:hidden touch-target no-select active:scale-95 transition-transform"
+            className="lg:hidden"
+            sx={{ color: '#6b7280' }}
           >
-            ✕
-          </button>
+            <CloseIcon />
+          </IconButton>
         </div>
 
         {/* Navigation items - scrollable on mobile */}
@@ -78,17 +94,26 @@ const ProfessionalLayout = () => {
           <ul className="space-y-1">
             {navItems.map((item) => (
               <li key={item.path}>
-                <button
+                <Button
                   onClick={() => handleNavigation(item.path)}
-                  className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 sm:py-2.5 text-left text-sm sm:text-base transition-all touch-target-responsive no-select active:scale-[0.98] ${
-                    isActivePath(item.path)
-                      ? 'bg-blue-100 text-blue-700 font-medium'
-                      : 'text-gray-700 hover:bg-gray-100'
-                  }`}
+                  fullWidth
+                  startIcon={item.icon}
+                  sx={{
+                    justifyContent: 'flex-start',
+                    px: '12px',
+                    py: { xs: '12px', sm: '10px' },
+                    fontSize: { xs: '14px', sm: '16px' },
+                    textTransform: 'none',
+                    backgroundColor: isActivePath(item.path) ? '#dbeafe' : 'transparent',
+                    color: isActivePath(item.path) ? '#1d4ed8' : '#374151',
+                    fontWeight: isActivePath(item.path) ? 500 : 400,
+                    '&:hover': {
+                      backgroundColor: isActivePath(item.path) ? '#bfdbfe' : '#f3f4f6',
+                    },
+                  }}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
+                  {item.label}
+                </Button>
               </li>
             ))}
           </ul>
@@ -96,26 +121,51 @@ const ProfessionalLayout = () => {
           {/* My booking page link */}
           {professional?.slug && (
             <div className="mt-4 sm:mt-6 border-t pt-4">
-              <button
+              <Button
                 onClick={() => handleNavigation(`/booking/${professional.slug}`)}
-                className="flex w-full items-center gap-3 rounded-lg bg-green-50 px-3 py-3 sm:py-2.5 text-left text-sm sm:text-base text-green-700 hover:bg-green-100 touch-target-responsive no-select active:scale-[0.98] transition-transform"
+                fullWidth
+                startIcon={<PublicIcon />}
+                sx={{
+                  justifyContent: 'flex-start',
+                  gap: '12px',
+                  px: '12px',
+                  py: { xs: '12px', sm: '10px' },
+                  fontSize: { xs: '14px', sm: '16px' },
+                  textTransform: 'none',
+                  backgroundColor: '#dcfce7',
+                  color: '#15803d',
+                  '&:hover': {
+                    backgroundColor: '#bbf7d0',
+                  },
+                }}
               >
-                <span className="text-lg">🌐</span>
-                <span>Mi Página de Reservas</span>
-              </button>
+                Mi Página de Reservas
+              </Button>
             </div>
           )}
         </nav>
 
         {/* Sidebar footer - Logout */}
         <div className="border-t p-3 sm:p-4">
-          <button
+          <Button
             onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-3 sm:py-2.5 text-left text-sm sm:text-base text-red-600 hover:bg-red-50 touch-target-responsive no-select active:scale-[0.98] transition-transform"
+            fullWidth
+            startIcon={<LogoutIcon />}
+            sx={{
+              justifyContent: 'flex-start',
+              gap: '12px',
+              px: '12px',
+              py: { xs: '12px', sm: '10px' },
+              fontSize: { xs: '14px', sm: '16px' },
+              textTransform: 'none',
+              color: '#dc2626',
+              '&:hover': {
+                backgroundColor: '#fef2f2',
+              },
+            }}
           >
-            <span className="text-lg">🚪</span>
-            <span>Cerrar Sesión</span>
-          </button>
+            Cerrar Sesión
+          </Button>
         </div>
       </aside>
 
@@ -124,14 +174,13 @@ const ProfessionalLayout = () => {
         {/* Top header */}
         <header className="flex h-14 sm:h-16 items-center justify-between border-b bg-white px-3 sm:px-4 shadow-sm">
           {/* Mobile menu button */}
-          <button
+          <IconButton
             onClick={() => setIsSidebarOpen(true)}
-            className="rounded-lg p-2.5 text-gray-600 hover:bg-gray-100 lg:hidden touch-target no-select active:scale-95 transition-transform"
+            className="lg:hidden"
+            sx={{ color: '#4b5563' }}
           >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </button>
+            <MenuIcon />
+          </IconButton>
 
           {/* Professional name */}
           <div className="flex items-center gap-1 sm:gap-2 truncate">
@@ -142,12 +191,19 @@ const ProfessionalLayout = () => {
           </div>
 
           {/* Desktop logout button */}
-          <button
+          <Button
             onClick={handleLogout}
-            className="hidden rounded-lg px-4 py-2 text-sm text-red-600 hover:bg-red-50 lg:block"
+            startIcon={<LogoutIcon />}
+            sx={{
+              display: { xs: 'none', lg: 'flex' },
+              color: '#dc2626',
+              '&:hover': {
+                backgroundColor: '#fef2f2',
+              },
+            }}
           >
             Cerrar Sesión
-          </button>
+          </Button>
         </header>
 
         {/* Page content */}

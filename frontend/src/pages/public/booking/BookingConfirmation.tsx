@@ -1,4 +1,6 @@
 import { useEffect } from 'react';
+import { Button } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 import { useAppDispatch, useAppSelector } from '../../../store';
 import {
   createDepositPayment,
@@ -69,19 +71,7 @@ const BookingConfirmation = ({
       {/* Success header */}
       <div className="mb-4 sm:mb-6 text-center fade-down-normal">
         <div className="mx-auto mb-3 sm:mb-4 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-full bg-green-100 zoom-in-fast">
-          <svg
-            className="h-7 w-7 sm:h-8 sm:w-8 text-green-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+          <CheckIcon sx={{ fontSize: { xs: 28, sm: 32 }, color: 'rgb(22, 163, 74)' }} />
         </div>
         <h1 className="text-xl sm:text-2xl font-bold text-gray-900 fade-up-fast">
           {isPendingPayment ? 'Reserva pendiente de pago' : 'Reserva confirmada'}
@@ -147,13 +137,23 @@ const BookingConfirmation = ({
               {depositPaymentError}
             </div>
           )}
-          <button
-            type="button"
-            className="w-full rounded-lg bg-yellow-600 px-4 py-3 sm:py-2.5 text-sm sm:text-base font-medium text-white hover:bg-yellow-500 flip-up-normal touch-target no-select active:scale-[0.98] transition-transform"
+          <Button
+            variant="contained"
             onClick={handlePayDeposit}
+            fullWidth
+            sx={{
+              textTransform: 'none',
+              minHeight: { xs: 48, sm: 40 },
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              bgcolor: 'warning.main',
+              '&:hover': {
+                bgcolor: 'warning.dark',
+              },
+            }}
+            className="flip-up-normal"
           >
             Pagar depósito con Mercado Pago
-          </button>
+          </Button>
           <p className="mt-2 text-xs text-yellow-600 text-center">
             Serás redirigido a Mercado Pago para completar el pago
           </p>
@@ -185,13 +185,18 @@ const BookingConfirmation = ({
 
       {/* Action buttons */}
       <div className="space-y-3 zoom-in-slow">
-        <button
-          type="button"
+        <Button
+          variant="contained"
           onClick={onNewBooking}
-          className="w-full rounded-lg bg-blue-600 px-4 py-3.5 sm:py-3 text-sm sm:text-base font-medium text-white hover:bg-blue-500 touch-target no-select active:scale-[0.98] transition-transform"
+          fullWidth
+          sx={{
+            textTransform: 'none',
+            minHeight: { xs: 56, sm: 48 },
+            fontSize: { xs: '0.875rem', sm: '1rem' }
+          }}
         >
           Hacer otra reserva
-        </button>
+        </Button>
       </div>
     </div>
   );

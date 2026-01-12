@@ -1,3 +1,5 @@
+import { Button } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
 import type { SubscriptionPlanOption, BillingPeriod, CurrentSubscription } from '../../../types';
 
 interface PlansSectionProps {
@@ -25,31 +27,21 @@ const PlansSection = ({
 
       {/* Billing Period Toggle */}
       <div className="flex items-center justify-center gap-4 mb-6">
-        <button
-          type="button"
+        <Button
+          variant={selectedPeriod === 'MONTHLY' ? 'contained' : 'outlined'}
           onClick={() => onPeriodChange('MONTHLY')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors fade-left-fast ${
-            selectedPeriod === 'MONTHLY'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
         >
           Mensual
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          variant={selectedPeriod === 'ANNUAL' ? 'contained' : 'outlined'}
           onClick={() => onPeriodChange('ANNUAL')}
-          className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors fade-right-fast ${
-            selectedPeriod === 'ANNUAL'
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-          }`}
         >
           Anual
           <span className="ml-2 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full zoom-in-fast">
             Ahorra 2 meses
           </span>
-        </button>
+        </Button>
       </div>
 
       {/* Plans Grid */}
@@ -92,22 +84,17 @@ const PlansSection = ({
                         featureIndex % 2 === 0 ? 'fade-left-normal' : 'fade-right-normal'
                       }`}
                     >
-                      <svg className="h-4 w-4 mt-0.5 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
+                      <CheckIcon sx={{ fontSize: 16, mt: 0.5, color: 'rgb(34, 197, 94)', flexShrink: 0 }} />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-                <button
-                  type="button"
+                <Button
+                  variant="contained"
                   onClick={() => onSubscribe(plan.id)}
                   disabled={isCurrentPlan && currentSubscription?.billingPeriod === selectedPeriod}
-                  className={`mt-6 w-full rounded-lg py-2.5 text-sm font-medium transition-colors fade-up-slow ${
-                    isCurrentPlan && currentSubscription?.billingPeriod === selectedPeriod
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                      : 'bg-blue-600 text-white hover:bg-blue-500'
-                  }`}
+                  fullWidth
+                  sx={{ mt: 3 }}
                 >
                   {isCurrentPlan
                     ? currentSubscription?.billingPeriod === selectedPeriod
@@ -116,7 +103,7 @@ const PlansSection = ({
                     : currentSubscription
                     ? 'Cambiar a este plan'
                     : 'Suscribirse'}
-                </button>
+                </Button>
               </div>
             </div>
           );

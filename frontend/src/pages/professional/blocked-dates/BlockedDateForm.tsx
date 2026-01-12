@@ -1,3 +1,5 @@
+import { TextField, Button, Radio, RadioGroup, FormControlLabel } from '@mui/material';
+
 // Get today's date formatted for input
 const getTodayForInput = (): string => {
   return new Date().toISOString().split('T')[0];
@@ -35,66 +37,57 @@ const BlockedDateForm = ({
       <h2 className="mb-4 text-lg font-medium text-gray-900 fade-down-fast">Agregar Fecha Bloqueada</h2>
 
       {/* Mode toggle */}
-      <div className="mb-4 flex gap-4 fade-up-fast">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="mode"
-            checked={mode === 'single'}
-            onChange={() => onModeChange('single')}
-            className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-700">Fecha única</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input
-            type="radio"
-            name="mode"
-            checked={mode === 'range'}
-            onChange={() => onModeChange('range')}
-            className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="text-sm text-gray-700">Rango de fechas</span>
-        </label>
-      </div>
+      <RadioGroup
+        row
+        value={mode}
+        onChange={(e) => onModeChange(e.target.value as 'single' | 'range')}
+        className="mb-4 fade-up-fast"
+      >
+        <FormControlLabel value="single" control={<Radio />} label="Fecha única" />
+        <FormControlLabel value="range" control={<Radio />} label="Rango de fechas" />
+      </RadioGroup>
 
       {/* Date inputs */}
       {mode === 'single' ? (
-        <div className="mb-4 zoom-in-fast">
-          <label className="block text-sm font-medium text-gray-700">Fecha</label>
-          <input
+        <div className="mb-4 zoom-in-fast sm:w-64">
+          <TextField
             type="date"
+            label="Fecha"
             value={singleDate}
-            min={getTodayForInput()}
             onChange={(e) => onSingleDateChange(e.target.value)}
-            className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 sm:w-64"
+            fullWidth
+            size="small"
+            InputLabelProps={{ shrink: true }}
+            inputProps={{ min: getTodayForInput() }}
           />
         </div>
       ) : (
         <div className="mb-4 flex flex-wrap gap-4 zoom-in-fast">
           <div className="fade-left-fast">
-            <label className="block text-sm font-medium text-gray-700">Fecha inicio</label>
-            <input
+            <TextField
               type="date"
+              label="Fecha inicio"
               value={startDate}
-              min={getTodayForInput()}
               onChange={(e) => {
                 onStartDateChange(e.target.value);
                 if (e.target.value > endDate) {
                   onEndDateChange(e.target.value);
                 }
               }}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              size="small"
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: getTodayForInput() }}
             />
           </div>
           <div className="fade-right-fast">
-            <label className="block text-sm font-medium text-gray-700">Fecha fin</label>
-            <input
+            <TextField
               type="date"
+              label="Fecha fin"
               value={endDate}
-              min={startDate || getTodayForInput()}
               onChange={(e) => onEndDateChange(e.target.value)}
-              className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              size="small"
+              InputLabelProps={{ shrink: true }}
+              inputProps={{ min: startDate || getTodayForInput() }}
             />
           </div>
         </div>
@@ -102,26 +95,25 @@ const BlockedDateForm = ({
 
       {/* Reason input */}
       <div className="mb-4 fade-up-normal">
-        <label className="block text-sm font-medium text-gray-700">
-          Motivo <span className="text-gray-400">(opcional)</span>
-        </label>
-        <input
-          type="text"
+        <TextField
+          label="Motivo (opcional)"
           value={reason}
           onChange={(e) => onReasonChange(e.target.value)}
           placeholder="Ej: Vacaciones, Feriado, Congreso médico..."
-          className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          fullWidth
+          size="small"
         />
       </div>
 
       {/* Add button */}
-      <button
-        type="button"
+      <Button
+        variant="contained"
+        color="primary"
         onClick={onSubmit}
-        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 zoom-in-normal"
+        className="zoom-in-normal"
       >
         {mode === 'single' ? 'Bloquear Fecha' : 'Bloquear Rango'}
-      </button>
+      </Button>
     </div>
   );
 };

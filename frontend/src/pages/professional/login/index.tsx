@@ -187,12 +187,12 @@ const ProfessionalLoginPage = () => {
         {/* Footer link */}
         <p className="mt-4 text-center text-sm text-gray-600 fade-up-slow">
           ¿Eres administrador?{' '}
-          <button
+          <span
             onClick={() => navigate('/login/admin')}
-            className="font-medium text-blue-600 hover:text-blue-500"
+            className="font-medium text-blue-600 hover:text-blue-500 cursor-pointer"
           >
             Ingresa aquí
-          </button>
+          </span>
         </p>
       </div>
     </div>

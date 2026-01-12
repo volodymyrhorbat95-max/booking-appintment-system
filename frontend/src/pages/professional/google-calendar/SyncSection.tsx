@@ -1,3 +1,6 @@
+import { Button } from '@mui/material';
+import SyncIcon from '@mui/icons-material/Sync';
+
 interface SyncSectionProps {
   lastSynced: number | null;
   onSync: () => void;
@@ -15,13 +18,13 @@ const SyncSection = ({ lastSynced, onSync }: SyncSectionProps) => {
               : 'Sincroniza los eventos de tu Google Calendar'}
           </p>
         </div>
-        <button
-          type="button"
+        <Button
+          variant="outlined"
           onClick={onSync}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 zoom-in-fast"
+          startIcon={<SyncIcon />}
         >
           Sincronizar ahora
-        </button>
+        </Button>
       </div>
     </div>
   );

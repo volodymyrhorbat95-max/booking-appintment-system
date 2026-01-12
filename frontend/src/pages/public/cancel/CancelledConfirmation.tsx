@@ -1,3 +1,6 @@
+import { Button } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+
 interface CancelledConfirmationProps {
   onGoHome: () => void;
 }
@@ -7,19 +10,7 @@ const CancelledConfirmation = ({ onGoHome }: CancelledConfirmationProps) => {
     <div className="mx-auto max-w-lg zoom-in-normal">
       <div className="text-center">
         <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-red-100 zoom-in-fast">
-          <svg
-            className="h-8 w-8 text-red-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <CloseIcon sx={{ fontSize: 32, color: 'rgb(220, 38, 38)' }} />
         </div>
         <h1 className="text-2xl font-bold text-gray-900 fade-down-fast">Reserva cancelada</h1>
         <p className="mt-2 text-gray-600 fade-up-normal">
@@ -35,13 +26,16 @@ const CancelledConfirmation = ({ onGoHome }: CancelledConfirmationProps) => {
       </div>
 
       <div className="mt-6 text-center fade-up-slow">
-        <button
-          type="button"
+        <Button
+          variant="contained"
           onClick={onGoHome}
-          className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-500"
+          sx={{
+            textTransform: 'none',
+            minHeight: 40,
+          }}
         >
           Volver al inicio
-        </button>
+        </Button>
       </div>
     </div>
   );
