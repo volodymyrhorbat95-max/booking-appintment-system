@@ -58,7 +58,7 @@ export const muiTheme = createTheme({
   },
 
   shape: {
-    borderRadius: 6, // Maximum 6px border radius as per design rules
+    borderRadius: 2, // Maximum 6px border radius as per design rules
   },
 
   typography: {
@@ -75,6 +75,7 @@ export const muiTheme = createTheme({
     button: {
       textTransform: 'none', // Disable uppercase transformation for buttons
       fontWeight: 500,
+      borderRadius: 2
     },
   },
 
@@ -82,7 +83,7 @@ export const muiTheme = createTheme({
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 6, // Enforce 6px max border radius
+          borderRadius: 2, // Enforce 6px max border radius
           paddingTop: '8px',
           paddingBottom: '8px',
           paddingLeft: '16px',
@@ -114,7 +115,7 @@ export const muiTheme = createTheme({
       styleOverrides: {
         root: {
           '& .MuiOutlinedInput-root': {
-            borderRadius: 6, // Enforce 6px max border radius
+            borderRadius: 2, // Enforce 6px max border radius
             fontSize: '14px',
             '& fieldset': {
               borderColor: '#d1d5db', // gray-300
@@ -141,7 +142,7 @@ export const muiTheme = createTheme({
     MuiSelect: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 2,
           fontSize: '14px',
         },
       },
@@ -153,7 +154,7 @@ export const muiTheme = createTheme({
     MuiDialog: {
       styleOverrides: {
         paper: {
-          borderRadius: 6, // Enforce 6px max border radius
+          borderRadius: 2, // Enforce 6px max border radius
           padding: '24px',
         },
       },
@@ -162,7 +163,7 @@ export const muiTheme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 6, // Enforce 6px max border radius
+          borderRadius: 2, // Enforce 6px max border radius
         },
       },
     },
@@ -170,10 +171,10 @@ export const muiTheme = createTheme({
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 6, // Enforce 6px max border radius
+          borderRadius: 2, // Enforce 6px max border radius
         },
         rounded: {
-          borderRadius: 6,
+          borderRadius: 2,
         },
       },
     },
@@ -181,7 +182,7 @@ export const muiTheme = createTheme({
     MuiChip: {
       styleOverrides: {
         root: {
-          borderRadius: 6, // Chips use 6px instead of full rounded
+          borderRadius: 2, // Chips use 6px instead of full rounded
           fontSize: '12px',
           fontWeight: 500,
         },
@@ -191,7 +192,7 @@ export const muiTheme = createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: {
-          borderRadius: 6, // Icon buttons use 6px instead of circular
+          borderRadius: 2, // Icon buttons use 6px instead of circular
           padding: '8px',
         },
         sizeSmall: {
@@ -233,7 +234,7 @@ export const muiTheme = createTheme({
     MuiAlert: {
       styleOverrides: {
         root: {
-          borderRadius: 6,
+          borderRadius: 2,
           fontSize: '14px',
         },
       },

@@ -65,20 +65,22 @@ const AdminLayout = () => {
         }`}
       >
         {/* Sidebar header */}
-        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-slate-700 px-4">
+        <div className="flex h-14 sm:h-16 items-center justify-between border-b border-slate-700 pl-6 pr-4">
           <span className="text-base sm:text-lg font-bold text-white">Panel Admin</span>
           <IconButton
             onClick={() => setIsSidebarOpen(false)}
-            className="lg:hidden"
-            sx={{ color: '#94a3b8' }}
+            sx={{
+              color: '#94a3b8',
+              display: { xs: 'inline-flex', lg: 'none' }
+            }}
           >
             <CloseIcon />
           </IconButton>
         </div>
 
         {/* Navigation items */}
-        <nav className="flex-1 overflow-y-auto scroll-smooth-touch p-3 sm:p-4 safe-area-bottom">
-          <ul className="space-y-1">
+        <nav className="flex-1 overflow-y-auto scroll-smooth-touch safe-area-bottom">
+          <ul className="">
             {navItems.map((item) => (
               <li key={item.path}>
                 <Button
@@ -87,10 +89,12 @@ const AdminLayout = () => {
                   startIcon={item.icon}
                   sx={{
                     justifyContent: 'flex-start',
-                    px: '12px',
+                    pl: '24px',
+                    pr: '16px',
                     py: { xs: '12px', sm: '10px' },
                     fontSize: { xs: '14px', sm: '16px' },
                     textTransform: 'none',
+                    borderRadius: 0,
                     backgroundColor: isActivePath(item.path) ? '#2563eb' : 'transparent',
                     color: isActivePath(item.path) ? '#ffffff' : '#cbd5e1',
                     fontWeight: isActivePath(item.path) ? 500 : 400,
@@ -107,7 +111,7 @@ const AdminLayout = () => {
         </nav>
 
         {/* Sidebar footer - Logout */}
-        <div className="border-t border-slate-700 p-3 sm:p-4">
+        <div className="border-t border-slate-700">
           <Button
             onClick={handleLogout}
             fullWidth
@@ -115,10 +119,12 @@ const AdminLayout = () => {
             sx={{
               justifyContent: 'flex-start',
               gap: '12px',
-              px: '12px',
+              pl: '24px',
+              pr: '16px',
               py: { xs: '12px', sm: '10px' },
               fontSize: { xs: '14px', sm: '16px' },
               textTransform: 'none',
+              borderRadius: 0,
               color: '#f87171',
               '&:hover': {
                 backgroundColor: '#1e293b',
@@ -137,8 +143,10 @@ const AdminLayout = () => {
           {/* Mobile menu button */}
           <IconButton
             onClick={() => setIsSidebarOpen(true)}
-            className="lg:hidden"
-            sx={{ color: '#4b5563' }}
+            sx={{
+              color: '#4b5563',
+              display: { xs: 'inline-flex', lg: 'none' }
+            }}
           >
             <MenuIcon />
           </IconButton>

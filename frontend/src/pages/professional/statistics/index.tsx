@@ -11,7 +11,8 @@ import {
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js';
 import StatisticsHeader from './StatisticsHeader';
 import StatsSummaryCards from './StatsSummaryCards';
@@ -29,7 +30,8 @@ ChartJS.register(
   ArcElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 // RULE: Page folder structure - index.tsx + flat components (NO subdirectories)
